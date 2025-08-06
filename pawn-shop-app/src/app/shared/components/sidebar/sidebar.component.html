@@ -1,0 +1,138 @@
+<!-- components/layout/sidebar/sidebar.component.html -->
+<aside class="sidebar" [class.open]="isOpen">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <svg class="logo-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <circle cx="9" cy="9" r="2"></circle>
+        <path d="m21 15-3.086-3.086a2 2 0 0 0-1.414-.586H14l-2.5-2.5A2 2 0 0 0 10.086 8H7"></path>
+      </svg>
+      <span class="logo-text">PawnShop</span>
+    </div>
+    <button class="sidebar-close-btn" (click)="onCloseSidebar()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <div class="sidebar-content">
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        <li class="nav-item" *ngFor="let item of menuItems">
+          <!-- Menu Item -->
+          <button 
+            class="nav-link"
+            [class.active]="isParentActive(item)"
+            [class.has-children]="item.children"
+            (click)="toggleExpanded(item)">
+            
+            <span class="nav-icon" [innerHTML]="item.icon"></span>
+            <span class="nav-label">{{item.label}}</span>
+            
+            <!-- Badge -->
+            <span class="nav-badge" *ngIf="item.badge">{{item.badge}}</span>
+            
+            <!-- Expand Arrow -->
+            <svg 
+              class="expand-arrow" 
+              *ngIf="item.children"
+              [class.expanded]="isExpanded(item)"
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+          </button>
+
+          <!-- Submenu -->
+          <ul 
+            class="submenu"
+            *ngIf="item.children"
+            [class.expanded]="isExpanded(item)">
+            <li class="submenu-item" *ngFor="let child of item.children">
+              <button 
+                class="submenu-link"
+                [class.active]="isActiveRoute(child.route)"
+                (click)="navigateToChild(child.route)">
+                <span class="submenu-icon" [innerHTML]="child.icon"></span>
+                <span class="submenu-label">{{child.label}}</span>
+              </button>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Quick Stats -->
+    <div class="sidebar-stats">
+      <div class="stats-header">
+        <h4>Quick Stats</h4>
+      </div>
+      <div class="stats-content">
+        <div class="stat-item">
+          <div class="stat-icon active">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12,6 12,12 16,14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">12</span>
+            <span class="stat-label">Active</span>
+          </div>
+        </div>
+        
+        <div class="stat-item">
+          <div class="stat-icon overdue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">3</span>
+            <span class="stat-label">Overdue</span>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon success">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22,4 12,14.01 9,11.01"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">45</span>
+            <span class="stat-label">Redeemed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <div class="footer-content">
+      <div class="help-section">
+        <button class="help-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Help & Support</span>
+        </button>
+      </div>
+      
+      <div class="version-info">
+        <span>Version 1.0.0</span>
+      </div>
+    </div>
+  </div>
+</aside>
