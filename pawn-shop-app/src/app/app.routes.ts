@@ -1,7 +1,16 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './shared/components/home/home.component';
+import { DashboardComponent } from './features/dashboard/dashboard.component';
+import { PawnItemsComponent } from './features/pawn-items/pawn-items.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'home', component: HomeComponent }
+  {
+    path: '',
+    component: HomeComponent,
+    children: [
+      { path: 'dashboard', component: DashboardComponent },
+      { path: 'pawn-items', component: PawnItemsComponent },
+    ]
+  }
 ];
+

@@ -1,0 +1,45 @@
+.app-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  position: relative;
+}
+
+.main-layout {
+  display: flex;
+  padding-top: 70px;
+  min-height: calc(100vh - 70px);
+}
+
+.content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 0;
+  background: transparent;
+  min-height: calc(100vh - 70px);
+  overflow-y: auto;
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .content {
+    margin-left: 0;
+  }
+}
+
+/* Smooth scrollbar styling */
+.content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 4px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}

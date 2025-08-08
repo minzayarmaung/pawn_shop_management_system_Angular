@@ -1,0 +1,98 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">📊 Dashboard Overview</h1>
+    <p class="dashboard-subtitle">Monitor your business performance</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <h3 class="stat-title">Total Amount</h3>
+        <p class="stat-value">{{ totalAmount | currency }}</p>
+        <span class="stat-change positive">+12.5%</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div class="stat-content">
+        <h3 class="stat-title">Items</h3>
+        <p class="stat-value">{{ totalItems }}</p>
+        <span class="stat-change positive">+8.2%</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <h3 class="stat-title">Users</h3>
+        <p class="stat-value">{{ totalUsers }}</p>
+        <span class="stat-change neutral">+2.1%</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🧮</div>
+      <div class="stat-content">
+        <h3 class="stat-title">Profits</h3>
+        <p class="stat-value">{{ totalProfits | currency }}</p>
+        <span class="stat-change positive">+15.8%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <div class="chart-header">
+      <h3 class="chart-title">Monthly Profits</h3>
+      <div class="chart-legend">
+        <span class="legend-item">
+          <span class="legend-color"></span>
+          Profit (USD)
+        </span>
+      </div>
+    </div>
+    
+    <div class="custom-chart">
+      <div class="chart-container">
+        <div class="chart-grid">
+          <div class="grid-line" *ngFor="let line of gridLines" [style.bottom.%]="line"></div>
+        </div>
+        
+        <div class="chart-bars">
+          <div 
+            class="chart-bar" 
+            *ngFor="let data of chartData; let i = index"
+            [style.height.%]="(data.value / maxValue) * 100"
+            [attr.data-value]="data.value"
+          >
+            <div class="bar-fill"></div>
+            <span class="bar-label">{{ data.label }}</span>
+            <div class="bar-tooltip">{{ data.value | currency }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chart-y-axis">
+        <span *ngFor="let label of yAxisLabels" class="y-axis-label">{{ label | currency }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="additional-stats">
+    <div class="quick-stats">
+      <div class="quick-stat-item">
+        <span class="quick-stat-label">Average Deal</span>
+        <span class="quick-stat-value">{{ (totalAmount / totalItems) | currency }}</span>
+      </div>
+      <div class="quick-stat-item">
+        <span class="quick-stat-label">Profit Margin</span>
+        <span class="quick-stat-value">{{ ((totalProfits / totalAmount) * 100).toFixed(1) }}%</span>
+      </div>
+      <div class="quick-stat-item">
+        <span class="quick-stat-label">Active Users</span>
+        <span class="quick-stat-value">{{ totalUsers }}</span>
+      </div>
+    </div>
+  </div>
+</div>
