@@ -3,7 +3,7 @@
     <div class="navbar-brand">
       <h1 class="logo">ပွိုင့်စတား အမိန့်ရအပေါင်ဆိုင်</h1>
     </div>
-    
+
     <div class="navbar-menu">
       <div class="navbar-links">
         <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
@@ -15,13 +15,32 @@
           Settings
         </a>
       </div>
-      
+
       <div class="navbar-profile">
         <div class="profile-menu">
           <div class="profile-avatar">
             <span>👤</span>
           </div>
         </div>
+
+<div class="language-switch">
+  <button class="language-toggle" (click)="toggleDropdown()">
+    🌐 <span class="language-text">Language</span>
+  </button>
+  <div class="dashboard-nav-dropdown-menu" *ngIf="dropdownOpen">
+    <a href="javascript:void(0)" class="dashboard-nav-dropdown-item" (click)="changeLanguage('en')">
+      <img src="assets/images/language_icons/usa.png" alt="English flag" class="flag-icon" />
+      English
+    </a>
+    <a href="javascript:void(0)" class="dashboard-nav-dropdown-item" (click)="changeLanguage('mm')">
+      <img src="assets/images/language_icons/myanmar.png" alt="Myanmar flag" class="flag-icon" />
+      မြန်မာစာ
+    </a>
+  </div>
+</div>
+
+
+
       </div>
     </div>
   </div>
