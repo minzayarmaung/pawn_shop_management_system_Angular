@@ -1,17 +1,17 @@
-import { Customer } from "./customer.model";
-import { Item } from "./item.model";
+import { Customer } from './customer.model';
+import { MasterData } from './MasterData.model';
+import { PawnItem } from './pawn-item.model';
+import { Setup } from './setup.model';
 
-// models/pawn-transaction.model.ts
-export interface PawnTransaction {
-  id?: number;
+export interface PawnTransaction extends MasterData {
   customer: Customer;
-  item: Item;
-  pawnDate: Date;
-  dueDate: Date;
+  pawnItem: PawnItem;
+  pawnDate: string;
+  dueDate: string;
   loanAmount: number;
-  serviceFee: number;
+  setup: Setup;
   totalRepayment: number;
-  isRedeemed: boolean;
-  redeemedDate?: Date;
+  redeemed: boolean;
+  redeemedDate?: string;
   voucherNumber: string;
 }

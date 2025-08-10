@@ -1,0 +1,32 @@
+<div class="toast-container">
+  <div 
+    *ngFor="let toast of toasts; trackBy: trackByFn" 
+    class="toast toast-{{toast.type}}"
+    [@slideIn]
+    (click)="removeToast(toast.id)"
+  >
+    <div class="toast-icon">
+      <span [ngSwitch]="toast.type">
+        <span *ngSwitchCase="'success'">✓</span>
+        <span *ngSwitchCase="'error'">✕</span>
+        <span *ngSwitchCase="'warning'">⚠</span>
+        <span *ngSwitchCase="'info'">ⓘ</span>
+      </span>
+    </div>
+    
+    <div class="toast-content">
+      <div class="toast-title">{{ toast.title }}</div>
+      <div class="toast-message">{{ toast.message }}</div>
+      <div class="toast-details" *ngIf="toast.details">
+        Transaction ID: {{ toast.details.transactionId }} | 
+        Customer ID: {{ toast.details.customerId }} | 
+        Item ID: {{ toast.details.pawnItemId }}
+      </div>
+    </div>
+    
+    <button class="toast-close" (click)="removeToast(toast.id)">×</button>
+
+    <!-- Countdown Bar -->
+    <div class="toast-timer" [style.animation-duration]="(toast.duration || 5000) + 'ms'"></div>
+  </div>
+</div>

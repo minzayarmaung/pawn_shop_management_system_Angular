@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PawnItemService } from '../../services/PawnItemService';
+import { ToastContainerComponent } from '../../shared/commons/toast-container/toast-container.component';
+import { ToastService } from '../../services/ToastService';
 
 interface PawnItem {
   id: string;
@@ -68,6 +71,16 @@ interface TableColumn {
   styleUrls: ['./pawn-items.component.css']
 })
 export class PawnItemsComponent implements OnInit {
+
+  successMessage: string | null = null;
+  errorMessage: string | null = null;
+  isLoading = false;
+  responseData: any = null;
+
+    // Auto-hide timers
+  private successTimer: any = null;
+  private errorTimer: any = null;
+
   // Data properties
   pawnItems: PawnItem[] = [];
   filteredItems: PawnItem[] = [];
@@ -86,6 +99,8 @@ export class PawnItemsComponent implements OnInit {
   showModal: boolean = false;
   isEditMode: boolean = false;
   formData: any = {};
+
+  constructor(private pawnItemService: PawnItemService , private toastService : ToastService) {}
   
   // Categories configuration
   categories: Category[] = [
@@ -141,6 +156,7 @@ export class PawnItemsComponent implements OnInit {
     { key: 'frameSize', label: 'Frame Size' },
     { key: 'gears', label: 'Gears', type: 'number' },
     { key: 'wheelSize', label: 'Wheel Size' },
+    { key: 'serialNumber', label: 'Serial Number' },
     { 
       key: 'condition', 
       label: 'Condition', 
@@ -168,8 +184,6 @@ export class PawnItemsComponent implements OnInit {
     }
   ]
 };
-
-
   ngOnInit(): void {
     this.applyFilters();
   }
@@ -393,10 +407,10 @@ export class PawnItemsComponent implements OnInit {
     this.showModal = true;
   }
 
-  closeModal(): void {
-    this.showModal = false;
-    this.formData = {};
-  }
+  // closeModal(): void {
+  //   this.showModal = false;
+  //   this.formData = {};
+  // }
 
   onCategoryChange(): void {
     // Reset dynamic fields when category changes
@@ -413,25 +427,168 @@ export class PawnItemsComponent implements OnInit {
     });
   }
 
-  savePawnItem(): void {
-    if (this.isEditMode) {
-      // Update existing item
-      const index = this.pawnItems.findIndex(item => item.id === this.formData.id);
-      if (index !== -1) {
-        this.pawnItems[index] = { ...this.formData };
-      }
-    } else {
-      // Create new item
-      const newItem: PawnItem = {
-        ...this.formData,
-        id: this.generateId(),
-        status: 'Active' as const
-      };
-      this.pawnItems.push(newItem);
-    }
+  // savePawnItem(): void {
+  //   if (this.isEditMode) {
+  //     // Update existing item
+  //     const index = this.pawnItems.findIndex(item => item.id === this.formData.id);
+  //     if (index !== -1) {
+  //       this.pawnItems[index] = { ...this.formData };
+  //     }
+  //   } else {
+  //     // Create new item
+  //     const newItem: PawnItem = {
+  //       ...this.formData,
+  //       id: this.generateId(),
+  //       status: 'Active' as const
+  //     };
+  //     this.pawnItems.push(newItem);
+  //   }
     
-    this.closeModal();
-    this.applyFilters();
+  //   this.closeModal();
+  //   this.applyFilters();
+  // }
+
+  savePawnItem(): void {
+    this.isLoading = true;
+
+    const payload: {
+      customerName: string;
+      customerPhone: string;
+      customerNrc: string;
+      customerAddress: string;
+      category: string;
+      amount: number;
+      pawnDate: string;
+      dueDate: string;
+      description: string;
+      details: Record<string, any>;
+    } = {
+      customerName: this.formData.customerName,
+      customerPhone: this.formData.customerPhone,
+      customerNrc: this.formData.customerNrc,
+      customerAddress: this.formData.customerAddress,
+      category: this.formData.category,
+      amount: this.formData.amount,
+      pawnDate: this.formData.pawnDate,
+      dueDate: this.formData.dueDate,
+      description: this.formData.description,
+      details: {}
+    };
+
+    // Add dynamic fields to details
+    this.getDynamicColumns(this.formData.category).forEach(col => {
+      payload.details[col.key] = this.formData[col.key];
+    });
+
+    if (this.isEditMode) {
+      this.handleUpdateItem(payload);
+    } else {
+      this.handleCreateItem(payload);
+    }
+  }
+
+  private handleCreateItem(payload: any): void {
+    this.pawnItemService.createPawnItem(payload).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+        
+        // Show success toast
+        this.toastService.showSuccess(
+          'Success!',
+          response.message || 'Pawn item created successfully',
+          response.data
+        );
+        // this.closeModal();
+
+        // Refresh items list
+        this.loadItems();
+
+        // Close modal immediately on success
+        this.closeModal();
+      },
+      error: (error: any) => {
+        this.isLoading = false;
+        
+        // Extract error message
+        let errorMsg = 'An unexpected error occurred';
+        if (error.error?.message) {
+          errorMsg = error.error.message;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+
+        // Show error toast
+        this.toastService.showError(
+          'Error!',
+          errorMsg
+        );
+
+        // Keep modal open on error
+      }
+    });
+  }
+
+  private handleUpdateItem(payload: any): void {
+    this.pawnItemService.updatePawnItem(payload).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+        
+        // Show success toast
+        this.toastService.showSuccess(
+          'Updated!',
+          response.message || 'Pawn item updated successfully',
+          response.data
+        );
+
+        // Refresh items list
+        this.loadItems();
+
+        // Close modal immediately on success
+        this.closeModal();
+      },
+      error: (error: any) => {
+        this.isLoading = false;
+        
+        // Extract error message
+        let errorMsg = 'An unexpected error occurred';
+        if (error.error?.message) {
+          errorMsg = error.error.message;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+
+        // Show error toast
+        this.toastService.showError(
+          'Update Failed!',
+          errorMsg
+        );
+      }
+    });
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.isEditMode = false;
+    this.isLoading = false;
+    this.resetForm();
+  }
+
+  private resetForm(): void {
+    this.formData = {
+      customerName: '',
+      customerPhone: '',
+      customerNrc: '',
+      customerAddress: '',
+      category: '',
+      amount: 0,
+      pawnDate: '',
+      dueDate: '',
+      description: ''
+    };
+  }
+
+  loadItems() {
+    throw new Error('Method not implemented.');
   }
 
   viewItem(item: PawnItem): void {
@@ -445,6 +602,7 @@ export class PawnItemsComponent implements OnInit {
       this.applyFilters();
     }
   }
+
 
   private getEmptyFormData(): any {
     return {
@@ -469,4 +627,11 @@ export class PawnItemsComponent implements OnInit {
     const number = (this.pawnItems.length + 1).toString().padStart(3, '0');
     return `${prefix}${number}`;
   }
+
+  onPawnDateChange(): void {
+    const pawnDate = new Date(this.formData.pawnDate);
+    pawnDate.setDate(pawnDate.getDate() + 30);
+    this.formData.dueDate = pawnDate.toISOString().split('T')[0];
+  }
+
 }

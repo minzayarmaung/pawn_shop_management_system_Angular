@@ -1,8 +1,7 @@
-// models/user.model.ts
-export interface User {
-  id?: number;
-  avatar: string;
+import { MasterData } from "./MasterData.model";
+
+export interface User extends MasterData {
   username: string;
-  password?: string; // Don't include in responses from backend
-  role: 'ADMIN' | 'STAFF';
+  password?: string;
+  role: string;
 }
