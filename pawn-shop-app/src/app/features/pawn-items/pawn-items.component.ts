@@ -2,13 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PawnItemService } from '../../services/PawnItemService';
-import { ToastContainerComponent } from '../../shared/commons/toast-container/toast-container.component';
 import { ToastService } from '../../services/ToastService';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 interface PawnItem {
   id: string;
   customerName: string;
-  customerPhone: string;
+  customerNrc: string;
   category: string;
   amount: number;
   pawnDate: string;
@@ -186,6 +186,8 @@ export class PawnItemsComponent implements OnInit {
 };
   ngOnInit(): void {
     this.applyFilters();
+    this.loadItems();
+
   }
 
   // // Generate sample data
@@ -278,6 +280,7 @@ export class PawnItemsComponent implements OnInit {
   selectCategory(category: string): void {
     this.selectedCategory = category;
     this.currentPage = 1;
+    this.loadItems();
     this.applyFilters();
   }
 
@@ -292,6 +295,7 @@ export class PawnItemsComponent implements OnInit {
   }
 
   onSortChange(): void {
+    this.loadItems();
     this.applyFilters();
   }
 
@@ -587,9 +591,25 @@ export class PawnItemsComponent implements OnInit {
     };
   }
 
-  loadItems() {
-    throw new Error('Method not implemented.');
+  
+loadItems() {
+  this.pawnItemService.getPawnItems(this.selectedCategory, this.sortBy)
+    .subscribe(res => {
+      const items = Array.isArray(res.data) ? res.data : [];
+      this.filteredItems = items.map((i: any) => ({
+        id: i.id,
+        customerName: i.customerName ?? '',
+        customerNrc: i.customerNrc ?? '',
+        category: i.category,
+        amount: i.amount,
+        pawnDate: i.pawnDate,
+        dueDate: i.dueDate,
+        status: i.status,
+        ...i.details
+      }));
+    });
   }
+
 
   viewItem(item: PawnItem): void {
     // Implement view functionality
