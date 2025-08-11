@@ -616,13 +616,24 @@ loadItems() {
     console.log('View item:', item);
   }
 
-  deleteItem(item: PawnItem): void {
-    if (confirm(`Are you sure you want to delete pawn item ${item.id}?`)) {
-      this.pawnItems = this.pawnItems.filter(p => p.id !== item.id);
-      this.applyFilters();
-    }
+deleteItem(item: PawnItem): void {
+  if (confirm(`Are you sure you want to mark pawn item ${item.id} as inactive?`)) {
+    this.pawnItemService.deletePawnItem(item.id)
+      .subscribe({
+        next: (res) => {
+          if (res.success === 1) {
+            // Remove it from list without page reload
+            this.pawnItems = this.pawnItems.filter(p => p.id !== item.id);
+            this.applyFilters();
+            alert('Item marked as inactive successfully');
+          } else {
+            alert('Error: ' + res.message);
+          }
+        },
+        error: () => alert('Failed to update item status')
+      });
   }
-
+}
 
   private getEmptyFormData(): any {
     return {

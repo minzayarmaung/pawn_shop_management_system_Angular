@@ -26,4 +26,13 @@ export class PawnItemService {
     if (sortBy) params = params.set('sortBy', sortBy);
     return this.http.get<ApiResponse<PawnItem[]>>(this.baseUrl + '/all-pawn-items', { params });
   }
+
+  deletePawnItem(id: string): Observable<ApiResponse<any>> {
+  return this.http.post<ApiResponse<any>>(
+    this.baseUrl + '/delete-pawn-item',
+    null,
+    { params: new HttpParams().set('id', id.toString()) }
+  );
+}
+
 }
