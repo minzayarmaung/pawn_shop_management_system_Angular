@@ -332,6 +332,11 @@
   color: #6366f1;
 }
 
+.status-inactive {
+  background: rgba(99, 102, 241, 0.1);
+  color: #f16f63;
+}
+
 .action-buttons {
   display: flex;
   gap: 8px;

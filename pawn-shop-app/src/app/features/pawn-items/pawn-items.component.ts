@@ -13,7 +13,7 @@ interface PawnItem {
   amount: number;
   pawnDate: string;
   dueDate: string;
-  status: 'Active' | 'Expired' | 'Redeemed';
+  status: 'Active' | 'Expired' | 'Redeemed' | 'Inactive';
   description?: string;
   
   // Phone specific properties
@@ -626,6 +626,7 @@ deleteItem(item: PawnItem): void {
             this.pawnItems = this.pawnItems.filter(p => p.id !== item.id);
             this.applyFilters();
             alert('Item marked as inactive successfully');
+            this.loadItems();
           } else {
             alert('Error: ' + res.message);
           }
@@ -649,7 +650,7 @@ deleteItem(item: PawnItem): void {
 
   private getDefaultDueDate(): string {
     const date = new Date();
-    date.setMonth(date.getMonth() + 3); // Default 3 months from now
+    date.setMonth(date.getMonth() + 1); // Default 3 months from now
     return date.toISOString().split('T')[0];
   }
 
