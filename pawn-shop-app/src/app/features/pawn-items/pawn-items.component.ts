@@ -81,6 +81,9 @@ export class PawnItemsComponent implements OnInit {
   isLoading = false;
   responseData: any = null;
 
+  isCheckedOutItems: boolean = false;
+
+
     // Auto-hide timers
   private successTimer: any = null;
   private errorTimer: any = null;
@@ -365,9 +368,33 @@ export class PawnItemsComponent implements OnInit {
   openCreateModal(): void {
     this.isViewMode = false;
     this.isEditMode = false;
+
+    // Remove all dynamic controls
+    Object.values(this.categoryColumns).forEach(categoryColumns => {
+      categoryColumns.forEach(column => {
+        if (this.pawnForm.get(column.key)) {
+          this.pawnForm.removeControl(column.key);
+        }
+      });
+    });
+
+    // Set empty form data with default dates
     this.formData = this.getEmptyFormData();
+
+    // Reset the form with initial values
+    this.pawnForm.reset({
+      customerName: this.formData.customerName,
+      customerPhone: this.formData.customerPhone,
+      category: this.formData.category,
+      amount: this.formData.amount,
+      pawnDate: this.formData.pawnDate, // pre-filled
+      dueDate: this.formData.dueDate,   // pre-filled
+      description: this.formData.description
+    });
+
     this.showModal = true;
   }
+
 
   editItem(item: PawnItem): void {
       this.isViewMode = false;
@@ -392,33 +419,56 @@ export class PawnItemsComponent implements OnInit {
   //   this.formData = {};
   // }
 
-  onCategoryChange(category: string): void {
-    // Remove all existing dynamic form controls
-    Object.values(this.categoryColumns).forEach(categoryColumns => {
-      categoryColumns.forEach(column => {
-        if (this.pawnForm.get(column.key)) {
-          this.pawnForm.removeControl(column.key);
+  // onCategoryChange(category: string): void {
+  //   // Remove all existing dynamic form controls
+  //   Object.values(this.categoryColumns).forEach(categoryColumns => {
+  //     categoryColumns.forEach(column => {
+  //       if (this.pawnForm.get(column.key)) {
+  //         this.pawnForm.removeControl(column.key);
+  //       }
+  //     });
+  //   });
+
+  //   // Add new form controls for the selected category
+  //   const selectedColumns = this.getDynamicColumns(category);
+  //   selectedColumns.forEach(column => {
+  //     // Use the required property from your configuration
+  //     const validators = column.required ? [Validators.required] : [];
+  //     this.pawnForm.addControl(column.key, new FormControl('', validators));
+  //   });
+
+  //   // Clear the formData for dynamic fields if you're still using it
+  //   Object.keys(this.categoryColumns).forEach(cat => {
+  //     if (cat !== category) {
+  //       this.categoryColumns[cat].forEach(column => {
+  //         delete this.formData[column.key];
+  //       });
+  //     }
+  //   });
+  // }
+
+  onCategoryChange(category: string, patchData?: any): void {
+      // Remove only old controls for the previous category if needed
+      Object.values(this.categoryColumns).forEach(categoryColumns => {
+        categoryColumns.forEach(column => {
+          if (this.pawnForm.get(column.key)) {
+            this.pawnForm.removeControl(column.key);
+          }
+        });
+      });
+
+      // Add new controls for the selected category
+      const selectedColumns = this.getDynamicColumns(category);
+      selectedColumns.forEach(column => {
+        const validators = column.required ? [Validators.required] : [];
+        this.pawnForm.addControl(column.key, new FormControl('', validators));
+
+        // Patch value immediately if exists
+        if (patchData && patchData[column.key] !== undefined) {
+          this.pawnForm.get(column.key)?.setValue(patchData[column.key]);
         }
       });
-    });
-
-    // Add new form controls for the selected category
-    const selectedColumns = this.getDynamicColumns(category);
-    selectedColumns.forEach(column => {
-      // Use the required property from your configuration
-      const validators = column.required ? [Validators.required] : [];
-      this.pawnForm.addControl(column.key, new FormControl('', validators));
-    });
-
-    // Clear the formData for dynamic fields if you're still using it
-    Object.keys(this.categoryColumns).forEach(cat => {
-      if (cat !== category) {
-        this.categoryColumns[cat].forEach(column => {
-          delete this.formData[column.key];
-        });
-      }
-    });
-  }
+    }
 
     savePawnItem(): void {
     if (this.pawnForm.valid) {
@@ -582,21 +632,54 @@ loadItems() {
   }
 
   viewItem(item: PawnItem): void {
-    this.isViewMode = true;
-    this.isEditMode = false;
+  this.isViewMode = true;
+  this.isEditMode = false;
+  
+  console.log('ViewItem - Full item object:', item);
+  console.log('ViewItem - Item keys:', Object.keys(item));
+  
+  // Since the item is already flattened, you don't need to access details
+  this.formData = { ...item };
+  
+  console.log('ViewItem - FormData:', this.formData);
+  console.log('ViewItem - Category value:', this.formData.category);
+  console.log('ViewItem - Storage value:', this.formData.storage);
+  console.log('ViewItem - Condition value:', this.formData.condition);
+  
+  console.log(this.formData)
+  // Populate the form with the flattened data
+  this.populateForm(this.formData);
+  this.showModal = true;
+}
+
+// viewItem(item: PawnItem): void {
+//     this.isViewMode = true;
+//     this.isEditMode = false;
     
-    // Use bracket notation to access details
-    const details = item['details'] || {};
-    // Flatten the item data including details
-    this.formData = { 
-      ...item, 
-      ...details
-    };
-    console.log(item)
-    // Populate the form with the flattened data
-    this.populateForm(this.formData);
-    this.showModal = true;
-  }
+//     // Use bracket notation to access details
+//   console.log('Full item object:', item);
+//   console.log('Item keys:', Object.keys(item));
+//   console.log('Type of item:', typeof item);
+  
+//   // Try different ways to access details
+//   console.log('item.details (dot notation):', (item as any).details);
+//   console.log('item["details"] (bracket notation):', item['details']);
+//   console.log('Does item have details property?:', 'details' in item);
+  
+//   // Use bracket notation to access details
+//   const details = item['details'] || {};
+//   console.log('details extracted:', details);
+//   console.log('details keys:', Object.keys(details));
+//     // Flatten the item data including details
+//     this.formData = { 
+//       ...item, 
+//       ...details,
+//     };
+//     console.log('Condition raw value:', JSON.stringify(item.condition));
+//     // Populate the form with the flattened data
+//     this.populateForm(this.formData);
+//     this.showModal = true;
+// }
 
 deleteItem(item: PawnItem): void {
   if (confirm(`Are you sure you want to mark pawn item ${item.id} as inactive?`)) {
@@ -668,6 +751,7 @@ deleteItem(item: PawnItem): void {
       pawnDate: data.pawnDate,
       dueDate: data.dueDate,
       description: data.description || '',
+      condition: data.condition,
       // Dynamic fields will be patched automatically since they're now form controls
       ...this.extractDynamicFields(data)
     });
@@ -685,8 +769,7 @@ deleteItem(item: PawnItem): void {
           dynamicFields[column.key] = data[column.key];
         }
       });
-    }
-    
+    } 
     return dynamicFields;
   }
 
