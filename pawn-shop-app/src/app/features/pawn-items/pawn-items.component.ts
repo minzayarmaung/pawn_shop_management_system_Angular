@@ -1,20 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PawnItemService } from '../../services/PawnItemService';
 import { ToastService } from '../../services/ToastService';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { CustomValidators } from '../../shared/commons/validators/customerValidators';
 
 interface PawnItem {
-  id: string;
+  id: string; // Make optional for creation
   customerName: string;
+  customerPhone: string; // Add this
+  customerAddress: string; // Add this
   customerNrc: string;
   category: string;
   amount: number;
   pawnDate: string;
   dueDate: string;
-  status: 'Active' | 'Expired' | 'Redeemed' | 'Inactive';
-  description?: string;
+  status: 'Active' | 'Expired' | 'Redeemed' | 'Inactive'; // Make optional for creation
+  description: string;
+  [key: string]: any; // This allows dynamic properties
   
   // Phone specific properties
   brand?: string;
@@ -60,13 +63,14 @@ interface TableColumn {
   key: string;
   label: string;
   type?: string;
+  required?: boolean;
   options?: string[];
 }
 
 @Component({
   selector: 'app-pawn-items',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule , ReactiveFormsModule],
   templateUrl: './pawn-items.component.html',
   styleUrls: ['./pawn-items.component.css']
 })
@@ -98,9 +102,47 @@ export class PawnItemsComponent implements OnInit {
   // Modal properties
   showModal: boolean = false;
   isEditMode: boolean = false;
+  isViewMode: boolean = false;
   formData: any = {};
 
-  constructor(private pawnItemService: PawnItemService , private toastService : ToastService) {}
+  pawnForm: FormGroup;
+  constructor(private pawnItemService: PawnItemService , private toastService : ToastService , private fb: FormBuilder) {
+    this.pawnForm = this.createForm();
+  }
+    // Create form with validators
+  private createForm(): FormGroup {
+    return this.fb.group({
+      customerName: ['', [Validators.required]],
+      customerAddress: ['', [Validators.required]],
+      customerNrc: ['', [Validators.required, CustomValidators.nrcValidator()]],
+      customerPhone: ['', [Validators.required, CustomValidators.phoneNumberValidator()]],
+      category: ['', [Validators.required]],
+      amount: ['', [Validators.required, Validators.min(0.01)]],
+      pawnDate: [this.getEmptyFormData().pawnDate, Validators.required],
+      dueDate: [this.getEmptyFormData().dueDate, Validators.required],
+      description: ['']
+    });
+  }
+
+    // Get NRC error message
+  getNrcErrorMessage(): string {
+    const nrcControl = this.pawnForm.get('customerNrc');
+    return CustomValidators.getNrcErrorMessage(nrcControl?.errors || null);
+  }
+
+  // Get Phone error message  
+  getPhoneErrorMessage(): string {
+    const phoneControl = this.pawnForm.get('customerPhone');
+    return CustomValidators.getPhoneErrorMessage(phoneControl?.errors || null);
+  }
+
+  // Mark all fields as touched to show validation errors
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.keys(formGroup.controls).forEach(field => {
+      const control = formGroup.get(field);
+      control?.markAsTouched({ onlySelf: true });
+    });
+  }
   
   // Categories configuration
   categories: Category[] = [
@@ -118,21 +160,24 @@ export class PawnItemsComponent implements OnInit {
        key: 'brand', 
        label: 'Brand',
        type: 'select',
+       required: true,
        options: ['Redmi' , 'Xiaomi' , 'Samsung' , 'iPhone' , 'Tecno' , 'Vivo' , 'Oppo', 'Itel' , 'Realme' , 'Google Pixel']
       
     },
-    { key: 'model', label: 'Model' },
-    { key: 'imei', label: 'IMEI' },
+    { key: 'model', label: 'Model' , required: true},
+    { key: 'imei', label: 'IMEI' , required: true },
     { 
       key: 'storage', 
       label: 'Storage', 
       type: 'select', 
+      required: true,
       options: ['32GB', '64GB', '128GB', '256GB', '512GB' , '1TB']  
     },
     { 
       key: 'condition', 
       label: 'Condition', 
       type: 'select', 
+      required: true,
       options: ['Like New', 'Normal', 'Eco Friendly', 'Just For Parts'] 
     }
   ],
@@ -144,137 +189,55 @@ export class PawnItemsComponent implements OnInit {
       key: 'engine', 
       label: 'Engine Power',
       type: 'select',
+      required: true,
       options:['100' , '110' , '125' , '135' , '150'] 
 
     },
 
-    { key: 'plateNumber', label: 'Plate Number' },
-    { key: 'mileage', label: 'Mileage', type: 'number' }
+    { key: 'plateNumber', label: 'Plate Number',  required: true, },
+    { key: 'mileage', label: 'Mileage', type: 'number' ,  required: true,}
   ],
   'Bicycle': [
-    { key: 'type', label: 'Type' },
-    { key: 'frameSize', label: 'Frame Size' },
-    { key: 'gears', label: 'Gears', type: 'number' },
-    { key: 'wheelSize', label: 'Wheel Size' },
-    { key: 'serialNumber', label: 'Serial Number' },
+    { key: 'type', label: 'Type' ,  required: true,},
+    { key: 'frameSize', label: 'Frame Size'  ,required: true, },
+    { key: 'gears', label: 'Gears', type: 'number', required: true, },
+    { key: 'wheelSize', label: 'Wheel Size' ,  required: true,},
+    { key: 'serialNumber', label: 'Serial Number' ,  required: true },
     { 
       key: 'condition', 
       label: 'Condition', 
       type: 'select', 
+      required: true,
       options: ['New', 'Like New', 'Used', 'Needs Repair'] 
     }
   ],
   'Watches': [
-    { key: 'watchBrand', label: 'Brand' },
-    { key: 'watchModel', label: 'Model' },
-    { key: 'movement', label: 'Movement' },
-    { key: 'material', label: 'Material' },
-    { key: 'serialNumber', label: 'Serial Number' }
+    { key: 'watchBrand', label: 'Brand' ,  required: true },
+    { key: 'watchModel', label: 'Model' ,  required: true,},
+    { key: 'movement', label: 'Movement' ,  required: true,},
+    { key: 'material', label: 'Material' ,  required: true,},
+    { key: 'serialNumber', label: 'Serial Number',  required: true, }
   ],
   'Others': [
-    { key: 'itemName', label: 'Item Name' },
-    { key: 'weight', label: 'Weight', type: 'number' },
-    { key: 'material2', label: 'Material' },
-    { key: 'color', label: 'Color' },
+    { key: 'itemName', label: 'Item Name' ,  required: true,},
+    { key: 'weight', label: 'Weight', type: 'number' ,  required: true,},
+    { key: 'material2', label: 'Material' ,  required: true,},
+    { key: 'color', label: 'Color',  required: true, },
     { 
       key: 'condition', 
       label: 'Condition', 
       type: 'select', 
+      required: true,
       options: ['New', 'Like New', 'Used', 'Needs Repair'] 
     }
   ]
 };
   ngOnInit(): void {
+    this.isViewMode = false;
     this.applyFilters();
     this.loadItems();
 
   }
-
-  // // Generate sample data
-  // private generateSampleData(): void {
-  //   this.pawnItems = [
-  //     {
-  //       id: 'PW001',
-  //       customerName: 'John Doe',
-  //       customerPhone: '+95-123-456-789',
-  //       category: 'Phone',
-  //       amount: 250000,
-  //       pawnDate: '2024-01-15',
-  //       dueDate: '2024-04-15',
-  //       status: 'Active',
-  //       brand: 'iPhone',
-  //       model: '14 Pro',
-  //       imei: '123456789012345',
-  //       storage: '256GB',
-  //       condition: 'Excellent',
-  //       description: 'iPhone 14 Pro in pristine condition'
-  //     },
-  //     {
-  //       id: 'PW002',
-  //       customerName: 'Mary Smith',
-  //       customerPhone: '+95-987-654-321',
-  //       category: 'MotoBike',
-  //       amount: 800000,
-  //       pawnDate: '2024-01-20',
-  //       dueDate: '2024-04-20',
-  //       status: 'Active',
-  //       make: 'Honda',
-  //       year: 2020,
-  //       engine: '150cc',
-  //       plateNumber: 'AA-1234',
-  //       mileage: 25000,
-  //       description: 'Honda bike in good condition'
-  //     },
-  //     {
-  //       id: 'PW003',
-  //       customerName: 'David Wilson',
-  //       customerPhone: '+95-555-123-456',
-  //       category: 'Watches',
-  //       amount: 500000,
-  //       pawnDate: '2024-01-10',
-  //       dueDate: '2024-04-10',
-  //       status: 'Expired',
-  //       watchBrand: 'Rolex',
-  //       watchModel: 'Submariner',
-  //       movement: 'Automatic',
-  //       material: 'Stainless Steel',
-  //       serialNumber: 'R123456',
-  //       description: 'Authentic Rolex Submariner'
-  //     },
-  //     {
-  //       id: 'PW004',
-  //       customerName: 'Sarah Johnson',
-  //       customerPhone: '+95-777-888-999',
-  //       category: 'Bicycle',
-  //       amount: 120000,
-  //       pawnDate: '2024-02-01',
-  //       dueDate: '2024-05-01',
-  //       status: 'Active',
-  //       type: 'Mountain Bike',
-  //       frameSize: 'Large',
-  //       gears: 21,
-  //       wheelSize: '26 inch',
-  //       condition: 'Good',
-  //       description: 'Mountain bike with 21-speed gears'
-  //     },
-  //     {
-  //       id: 'PW005',
-  //       customerName: 'Mike Brown',
-  //       customerPhone: '+95-333-444-555',
-  //       category: 'Others',
-  //       amount: 75000,
-  //       pawnDate: '2024-01-25',
-  //       dueDate: '2024-04-25',
-  //       status: 'Redeemed',
-  //       itemName: 'Gold Ring',
-  //       weight: 15,
-  //       material2: '18K Gold',
-  //       color: 'Yellow Gold',
-  //       condition: 'Excellent',
-  //       description: '18K gold ring with intricate design'
-  //     }
-  //   ];
-  // }
 
   // Filter and search methods
   selectCategory(category: string): void {
@@ -400,94 +363,99 @@ export class PawnItemsComponent implements OnInit {
 
   // Modal methods
   openCreateModal(): void {
+    this.isViewMode = false;
     this.isEditMode = false;
     this.formData = this.getEmptyFormData();
     this.showModal = true;
   }
 
   editItem(item: PawnItem): void {
-    this.isEditMode = true;
-    this.formData = { ...item };
-    this.showModal = true;
-  }
+      this.isViewMode = false;
+      this.isEditMode = true;
+      
+      // Use bracket notation to access details
+      const details = item['details'] || {};
+      
+      // Flatten the item data including details
+      this.formData = { 
+        ...item, 
+        ...details
+      };
+      
+      // Populate the form with the flattened data
+      this.populateForm(this.formData);
+      this.showModal = true;
+    }
 
   // closeModal(): void {
   //   this.showModal = false;
   //   this.formData = {};
   // }
 
-  onCategoryChange(): void {
-    // Reset dynamic fields when category changes
-    const currentCategory = this.formData.category;
-    const columns = this.getDynamicColumns(currentCategory);
-    
-    // Clear previous category-specific fields
-    Object.keys(this.categoryColumns).forEach(category => {
-      if (category !== currentCategory) {
-        this.categoryColumns[category].forEach(column => {
+  onCategoryChange(category: string): void {
+    // Remove all existing dynamic form controls
+    Object.values(this.categoryColumns).forEach(categoryColumns => {
+      categoryColumns.forEach(column => {
+        if (this.pawnForm.get(column.key)) {
+          this.pawnForm.removeControl(column.key);
+        }
+      });
+    });
+
+    // Add new form controls for the selected category
+    const selectedColumns = this.getDynamicColumns(category);
+    selectedColumns.forEach(column => {
+      // Use the required property from your configuration
+      const validators = column.required ? [Validators.required] : [];
+      this.pawnForm.addControl(column.key, new FormControl('', validators));
+    });
+
+    // Clear the formData for dynamic fields if you're still using it
+    Object.keys(this.categoryColumns).forEach(cat => {
+      if (cat !== category) {
+        this.categoryColumns[cat].forEach(column => {
           delete this.formData[column.key];
         });
       }
     });
   }
 
-  // savePawnItem(): void {
-  //   if (this.isEditMode) {
-  //     // Update existing item
-  //     const index = this.pawnItems.findIndex(item => item.id === this.formData.id);
-  //     if (index !== -1) {
-  //       this.pawnItems[index] = { ...this.formData };
-  //     }
-  //   } else {
-  //     // Create new item
-  //     const newItem: PawnItem = {
-  //       ...this.formData,
-  //       id: this.generateId(),
-  //       status: 'Active' as const
-  //     };
-  //     this.pawnItems.push(newItem);
-  //   }
-    
-  //   this.closeModal();
-  //   this.applyFilters();
-  // }
+    savePawnItem(): void {
+    if (this.pawnForm.valid) {
+      this.isLoading = true;
 
-  savePawnItem(): void {
-    this.isLoading = true;
+      const formValues = this.pawnForm.value as PawnItem;
 
-    const payload: {
-      customerName: string;
-      customerPhone: string;
-      customerNrc: string;
-      customerAddress: string;
-      category: string;
-      amount: number;
-      pawnDate: string;
-      dueDate: string;
-      description: string;
-      details: Record<string, any>;
-    } = {
-      customerName: this.formData.customerName,
-      customerPhone: this.formData.customerPhone,
-      customerNrc: this.formData.customerNrc,
-      customerAddress: this.formData.customerAddress,
-      category: this.formData.category,
-      amount: this.formData.amount,
-      pawnDate: this.formData.pawnDate,
-      dueDate: this.formData.dueDate,
-      description: this.formData.description,
-      details: {}
-    };
+      // Create base payload with static fields
+      const payload = {
+        customerName: formValues.customerName,
+        customerPhone: formValues.customerPhone,
+        customerNrc: formValues.customerNrc,
+        customerAddress: formValues.customerAddress,
+        category: formValues.category,
+        amount: formValues.amount,
+        pawnDate: formValues.pawnDate,
+        dueDate: formValues.dueDate,
+        description: formValues.description || '',
+        details: {} as Record<string, any>
+      };
 
-    // Add dynamic fields to details
-    this.getDynamicColumns(this.formData.category).forEach(col => {
-      payload.details[col.key] = this.formData[col.key];
-    });
+      // Add dynamic fields to details
+      this.getDynamicColumns(formValues.category).forEach(col => {
+        if (formValues[col.key] !== undefined && formValues[col.key] !== null && formValues[col.key] !== '') {
+          payload.details[col.key] = formValues[col.key];
+        }
+      });
 
-    if (this.isEditMode) {
-      this.handleUpdateItem(payload);
+      console.log('Payload being sent:', payload);
+
+      if (this.isEditMode) {
+        this.handleUpdateItem(payload);
+      } else {
+        this.handleCreateItem(payload);
+      }
     } else {
-      this.handleCreateItem(payload);
+      this.markFormGroupTouched(this.pawnForm);
     }
   }
 
@@ -600,20 +568,34 @@ loadItems() {
         id: i.id,
         customerName: i.customerName ?? '',
         customerNrc: i.customerNrc ?? '',
+        customerPhone: i.customerPhone ?? '',
+        customerAddress: i.customerAddress ?? '',
         category: i.category,
         amount: i.amount,
         pawnDate: i.pawnDate,
         dueDate: i.dueDate,
         status: i.status,
+        description: i.description,
         ...i.details
       }));
     });
   }
 
-
   viewItem(item: PawnItem): void {
-    // Implement view functionality
-    console.log('View item:', item);
+    this.isViewMode = true;
+    this.isEditMode = false;
+    
+    // Use bracket notation to access details
+    const details = item['details'] || {};
+    // Flatten the item data including details
+    this.formData = { 
+      ...item, 
+      ...details
+    };
+    console.log(item)
+    // Populate the form with the flattened data
+    this.populateForm(this.formData);
+    this.showModal = true;
   }
 
 deleteItem(item: PawnItem): void {
@@ -650,7 +632,7 @@ deleteItem(item: PawnItem): void {
 
   private getDefaultDueDate(): string {
     const date = new Date();
-    date.setMonth(date.getMonth() + 1); // Default 3 months from now
+    date.setMonth(date.getMonth() + 1); // Default 1 month from now
     return date.toISOString().split('T')[0];
   }
 
@@ -664,6 +646,48 @@ deleteItem(item: PawnItem): void {
     const pawnDate = new Date(this.formData.pawnDate);
     pawnDate.setDate(pawnDate.getDate() + 30);
     this.formData.dueDate = pawnDate.toISOString().split('T')[0];
+  }
+
+  populateForm(data: any): void {
+  // First, set the category to trigger dynamic field creation
+  this.pawnForm.patchValue({ category: data.category });
+  
+  // Trigger category change to add dynamic form controls
+  this.onCategoryChange(data.category);
+  
+  // Small delay to ensure dynamic controls are added before patching values
+  setTimeout(() => {
+    // Now patch all values including dynamic fields
+    this.pawnForm.patchValue({
+      customerName: data.customerName,
+      customerNrc: data.customerNrc,
+      customerAddress: data.customerAddress,
+      customerPhone: data.customerPhone,
+      category: data.category,
+      amount: data.amount,
+      pawnDate: data.pawnDate,
+      dueDate: data.dueDate,
+      description: data.description || '',
+      // Dynamic fields will be patched automatically since they're now form controls
+      ...this.extractDynamicFields(data)
+    });
+  }, 0);
+}
+
+// Helper method to extract dynamic fields based on category
+  extractDynamicFields(data: any): any {
+    const dynamicFields: any = {};
+    
+    if (data.category) {
+      const columns = this.getDynamicColumns(data.category);
+      columns.forEach(column => {
+        if (data[column.key] !== undefined) {
+          dynamicFields[column.key] = data[column.key];
+        }
+      });
+    }
+    
+    return dynamicFields;
   }
 
 }

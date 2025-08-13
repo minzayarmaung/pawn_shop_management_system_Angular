@@ -731,3 +731,40 @@
     transform: translateY(0) scale(1);
   }
 }
+.error-message{
+  color: red;
+}
+.btn-invalid {
+  background-color: #dc3545 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.btn-invalid:hover {
+  background-color: #dc3545 !important;
+  transform: none !important;
+}
+
+.invalid-icon {
+  margin-right: 5px;
+}
+
+.invalid-text {
+  font-size: 11px;
+  margin-left: 5px;
+  font-weight: normal;
+}
+.required-asterisk {
+  color: red;
+  margin-left: 2px;
+}
+
+.error {
+  border-color: #dc3545;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}

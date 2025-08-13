@@ -156,35 +156,65 @@
 <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>{{ isEditMode ? 'Edit' : 'Create' }} Pawn Item</h2>
+      <h2> {{ isViewMode ? 'View' : (isEditMode ? 'Edit' : 'Create') }} Pawn Item</h2>
       <button class="close-btn" (click)="closeModal()" [disabled]="isLoading">×</button>
     </div>
     
-    <form class="modal-form" (ngSubmit)="savePawnItem()" #pawnForm="ngForm">
+    <form class="modal-form" [formGroup]="pawnForm" (ngSubmit)="savePawnItem()">
       <!-- Customer Information -->
       <div class="form-row">
         <div class="form-group">
           <label for="customerName">Name</label>
-          <input id="customerName" type="text" [(ngModel)]="formData.customerName" 
-                 name="customerName" required [disabled]="isLoading">
+          <input 
+            id="customerName" 
+            type="text" 
+            formControlName="customerName"
+            [class.error]="pawnForm.get('customerName')?.invalid && pawnForm.get('customerName')?.touched"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="pawnForm.get('customerName')?.invalid && pawnForm.get('customerName')?.touched">
+            <span *ngIf="pawnForm.get('customerName')?.errors?.['required']">Name is required</span>
+          </div>
         </div>
 
         <div class="form-group">
           <label for="customerAddress">Address</label>
-          <input id="customerAddress" type="text" [(ngModel)]="formData.customerAddress" 
-                 name="customerAddress" required [disabled]="isLoading">
+          <input 
+            id="customerAddress" 
+            type="text" 
+            formControlName="customerAddress"
+            [class.error]="pawnForm.get('customerAddress')?.invalid && pawnForm.get('customerAddress')?.touched"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="pawnForm.get('customerAddress')?.invalid && pawnForm.get('customerAddress')?.touched">
+            <span *ngIf="pawnForm.get('customerAddress')?.errors?.['required']">Address is required</span>
+          </div>
         </div>
 
         <div class="form-group">
           <label for="customerNrc">NRC</label>
-          <input id="customerNrc" type="text" [(ngModel)]="formData.customerNrc" 
-                 name="customerNrc" required [disabled]="isLoading">
+          <input 
+            id="customerNrc" 
+            type="text" 
+            formControlName="customerNrc"
+            placeholder="e.g., 12/LAMANA(N)"
+            [class.error]="pawnForm.get('customerNrc')?.invalid && pawnForm.get('customerNrc')?.touched"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="pawnForm.get('customerNrc')?.invalid && pawnForm.get('customerNrc')?.touched">
+            <span>{{ getNrcErrorMessage() }}</span>
+          </div>
         </div>
 
         <div class="form-group">
           <label for="customerPhone">Phone</label>
-          <input id="customerPhone" type="tel" [(ngModel)]="formData.customerPhone" 
-                 name="customerPhone" required [disabled]="isLoading">
+          <input 
+            id="customerPhone" 
+            type="tel" 
+            formControlName="customerPhone"
+            placeholder="e.g., 09123456789"
+            [class.error]="pawnForm.get('customerPhone')?.invalid && pawnForm.get('customerPhone')?.touched"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="pawnForm.get('customerPhone')?.invalid && pawnForm.get('customerPhone')?.touched">
+            <span>{{ getPhoneErrorMessage() }}</span>
+          </div>
         </div>
       </div>
 
@@ -192,33 +222,54 @@
       <div class="form-row">
         <div class="form-group">
           <label for="category">Category</label>
-          <select id="category" [(ngModel)]="formData.category" name="category" 
-                  required (change)="onCategoryChange()" [disabled]="isLoading">
+          <select 
+            id="category" 
+            formControlName="category"
+            (change)="onCategoryChange(pawnForm.get('category')?.value)" 
+            [class.error]="pawnForm.get('category')?.invalid && pawnForm.get('category')?.touched"
+            [disabled]="isLoading">
             <option value="">Select Category</option>
             <option *ngFor="let cat of categories.slice(1)" [value]="cat.value">{{ cat.label }}</option>
           </select>
+          <div class="error-message" *ngIf="pawnForm.get('category')?.invalid && pawnForm.get('category')?.touched">
+            <span *ngIf="pawnForm.get('category')?.errors?.['required']">Category is required</span>
+          </div>
         </div>
+        
         <div class="form-group">
           <label for="amount">Amount</label>
-          <input id="amount" type="number" [(ngModel)]="formData.amount" 
-                 name="amount" required min="0" step="0.01" [disabled]="isLoading">
+          <input 
+            id="amount" 
+            type="number" 
+            formControlName="amount"
+            min="0" 
+            step="0.01" 
+            [class.error]="pawnForm.get('amount')?.invalid && pawnForm.get('amount')?.touched"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="pawnForm.get('amount')?.invalid && pawnForm.get('amount')?.touched">
+            <span *ngIf="pawnForm.get('amount')?.errors?.['required']">Amount is required</span>
+            <span *ngIf="pawnForm.get('amount')?.errors?.['min']">Amount must be greater than 0</span>
+          </div>
         </div>
       </div>
 
       <!-- Dynamic fields based on category -->
-      <div class="dynamic-fields" *ngIf="formData.category">
-        <h4>{{ getCategoryLabel(formData.category) }} Details</h4>
+      <div class="dynamic-fields" *ngIf="pawnForm.get('category')?.value">
+        <h4>{{ getCategoryLabel(pawnForm.get('category')?.value) }} Details</h4>
 
         <div class="form-row">
-          <div class="form-group" *ngFor="let column of getDynamicColumns(formData.category)">
-            <label [for]="column.key">{{ column.label }}</label>
+          <div class="form-group" *ngFor="let column of getDynamicColumns(pawnForm.get('category')?.value)">
+            <label [for]="column.key">
+              {{ column.label }}
+              <span *ngIf="column.required" class="required-asterisk">*</span>
+            </label>
 
             <!-- Render select if type is 'select' -->
             <select
               *ngIf="column.type === 'select'"
               [id]="column.key"
-              [(ngModel)]="formData[column.key]"
-              [name]="column.key"
+              [formControlName]="column.key"
+              [class.error]="pawnForm.get(column.key)?.invalid && pawnForm.get(column.key)?.touched"
               [disabled]="isLoading">
               <option value="">Select {{ column.label }}</option>
               <option *ngFor="let opt of column.options" [value]="opt">{{ opt }}</option>
@@ -229,9 +280,15 @@
               *ngIf="column.type !== 'select'"
               [id]="column.key"
               [type]="column.type || 'text'"
-              [(ngModel)]="formData[column.key]"
-              [name]="column.key"
+              [formControlName]="column.key"
+              [class.error]="pawnForm.get(column.key)?.invalid && pawnForm.get(column.key)?.touched"
               [disabled]="isLoading">
+
+            <!-- Error messages for dynamic fields -->
+            <div class="error-message" *ngIf="pawnForm.get(column.key)?.invalid && pawnForm.get(column.key)?.touched">
+              <span *ngIf="pawnForm.get(column.key)?.errors?.['required']">{{ column.label }} is required</span>
+              <span *ngIf="pawnForm.get(column.key)?.errors?.['min']">{{ column.label }} must be greater than 0</span>
+            </div>
           </div>
         </div>
       </div>
@@ -240,21 +297,41 @@
       <div class="form-row">
         <div class="form-group">
           <label for="pawnDate">Pawn Date</label>
-          <input id="pawnDate" type="date" [(ngModel)]="formData.pawnDate" 
-                 name="pawnDate" required (change)="onPawnDateChange()" [disabled]="isLoading">
+          <input 
+            id="pawnDate" 
+            type="date" 
+            formControlName="pawnDate"
+            (change)="onPawnDateChange()" 
+            [class.error]="pawnForm.get('pawnDate')?.invalid && pawnForm.get('pawnDate')?.touched"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="pawnForm.get('pawnDate')?.invalid && pawnForm.get('pawnDate')?.touched">
+            <span *ngIf="pawnForm.get('pawnDate')?.errors?.['required']">Pawn Date is required</span>
+          </div>
         </div>
+        
         <div class="form-group">
           <label for="dueDate">Due Date</label>
-          <input id="dueDate" type="date" [(ngModel)]="formData.dueDate" 
-                 name="dueDate" required [disabled]="isLoading">
+          <input 
+            id="dueDate" 
+            type="date" 
+            formControlName="dueDate"
+            [class.error]="pawnForm.get('dueDate')?.invalid && pawnForm.get('dueDate')?.touched"
+            [disabled]="isLoading">
+          <div class="error-message" *ngIf="pawnForm.get('dueDate')?.invalid && pawnForm.get('dueDate')?.touched">
+            <span *ngIf="pawnForm.get('dueDate')?.errors?.['required']">Due Date is required</span>
+          </div>
         </div>
       </div>
 
       <!-- Description -->
       <div class="form-group">
         <label for="description">Description (Optional)</label>
-        <textarea id="description" [(ngModel)]="formData.description" 
-                  name="description" rows="3" [disabled]="isLoading"></textarea>
+        <textarea 
+          id="description" 
+          formControlName="description"
+          rows="3" 
+          [disabled]="isLoading">
+        </textarea>
       </div>
 
       <!-- Simple Clean Alert Messages -->
@@ -289,12 +366,15 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="isLoading">
-          Cancel
-        </button>
-        <button type="submit" class="btn-primary" [disabled]="!pawnForm.form.valid || isLoading">
+        <button 
+          type="submit" 
+          class="btn-primary" 
+          [class.btn-invalid]="!pawnForm.valid"
+          [disabled]="!pawnForm.valid || isLoading">
           <span *ngIf="isLoading" class="loading-spinner-small"></span>
+          <span *ngIf="!pawnForm.valid && !isLoading" class="invalid-icon">🔒</span>
           {{ isEditMode ? 'Update' : 'Create' }} Item
+          <span *ngIf="!pawnForm.valid && !isLoading" class="invalid-text"></span>
         </button>
       </div>
     </form>
