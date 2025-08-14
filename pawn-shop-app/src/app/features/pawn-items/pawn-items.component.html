@@ -365,7 +365,25 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="modal-footer">
+<div class="modal-footer">
+  <!-- View Mode: Only Cancel Button -->
+  <ng-container *ngIf="isViewMode">
+    <button 
+      type="button" 
+      class="btn-cancel"
+      (click)="closeModal()">
+      Cancel
+    </button>
+  </ng-container>
+
+  <!-- Edit/Create Mode: Both Cancel and Submit Buttons -->
+      <ng-container *ngIf="!isViewMode">
+        <button 
+          type="button" 
+          class="btn-cancel"
+          (click)="closeModal()">
+          Cancel
+        </button>
         <button 
           type="submit" 
           class="btn-primary" 
@@ -376,7 +394,8 @@
           {{ isEditMode ? 'Update' : 'Create' }} Item
           <span *ngIf="!pawnForm.valid && !isLoading" class="invalid-text"></span>
         </button>
-      </div>
+      </ng-container>
+    </div>
     </form>
   </div>
 </div>
