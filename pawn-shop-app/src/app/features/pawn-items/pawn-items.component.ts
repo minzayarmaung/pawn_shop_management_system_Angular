@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, 
 import { PawnItemService } from '../../services/PawnItemService';
 import { ToastService } from '../../services/ToastService';
 import { CustomValidators } from '../../shared/commons/validators/customerValidators';
+import { TranslatePipe } from "../../services/pipes/translate.pipe";
 
 interface PawnItem {
   id: string; // Make optional for creation
@@ -70,7 +71,7 @@ interface TableColumn {
 @Component({
   selector: 'app-pawn-items',
   standalone: true,
-  imports: [CommonModule, FormsModule , ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './pawn-items.component.html',
   styleUrls: ['./pawn-items.component.css']
 })

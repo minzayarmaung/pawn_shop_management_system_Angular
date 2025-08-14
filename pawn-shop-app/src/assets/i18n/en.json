@@ -3,7 +3,8 @@
     "sections": {
       "main": "Main",
       "management": "Management",
-      "analyticsSettings": "Analytics & Settings"
+      "analyticsSettings": "Analytics & Settings",
+      "setting":"Setting"
     },
     "items": {
       "dashboard": "Dashboard",
@@ -34,11 +35,14 @@
         "id": "ID",
         "customerName": "Customer Name",
         "customerNrc": "Customer NRC",
+        "customerPhone":"Customer Phone",
+        "address":"Address",
         "itemType": "Item Type",
         "amount": "Amount",
         "pawnDate": "Pawn Date",
         "dueDate": "Due Date",
-        "status": "Status"
+        "status": "Status",
+        "category": "Category"
       },
       "sorting": {
         "byDate": "Sort by Date",
@@ -59,5 +63,17 @@
       "active": "Active",
       "expired": "Expired"
     }
+  },
+  "general":{
+    "description":"ဖော်ပြချက်",
+    "selectCategory": "Select Cateogry",
+    "createItem": "Create Item",
+    "categoryFilter": "Category Filter"
+  },
+  "validations":{
+    "nameisRequired":"Name is Required",
+    "addressisRequired":"Address is Required",
+    "nrcisRequired":"NRC is Required",
+    "phoneNoisRequired":"Phone is Required"
   }
 }

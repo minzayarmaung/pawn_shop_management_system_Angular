@@ -3,7 +3,8 @@
     "sections": {
       "main": "အဓိက",
       "management": "စီမံခန့်ခွဲမှု",
-      "analyticsSettings": "ခွဲခြမ်းစိတ်ဖြာမှုနှင့် ဆက်တင်များ"
+      "analyticsSettings": "ခွဲခြမ်းစိတ်ဖြာမှုနှင့် ဆက်တင်များ",
+      "setting":"ဆက်တင်"
     },
     "items": {
       "dashboard": "ဒက်ရှ်ဘုတ်",
@@ -31,14 +32,17 @@
   "pawn": {
     "table": {
       "headers": {
-        "id": "ID",
+        "id": "အိုင်ဒီ",
         "customerName": "ဖောက်သည်အမည်",
         "customerNrc": "ဖောက်သည် မှတ်ပုံတင်",
+        "customerPhone":"ဖောက်သည် ဖုန်းနံပါတ်",
+        "address":"နေရပ်လိပ်စာ",
         "itemType": "ပစ္စည်းအမျိုးအစား",
         "amount": "ပမာဏ",
         "pawnDate": "အပေါင်ရက်စွဲ",
         "dueDate": "ကျသင့်ရက်စွဲ",
-        "status": "အခြေအနေ"
+        "status": "အခြေအနေ",
+        "category": "အမျိုးအစား"
       },
       "sorting": {
         "byDate": "ရက်စွဲအလိုက် အစီအစဉ်",
@@ -59,5 +63,17 @@
       "active": "လက်ရှိအသုံးပြု",
       "expired": "သက်တမ်းကုန်"
     }
+  },
+    "general":{
+    "description":"ဖော်ပြချက်",
+    "selectCategory": "အမျိုးအစား ရွေးချယ်ရန်",
+    "createItem": "အသစ်တစ်ခုဖန်တီးရန်",
+    "categoryFilter": "အမျိုးအစား စစ်ထုတ်ခြင်း"
+  },
+    "validations":{
+    "nameisRequired":"နာမည် ထည့်ရန်လိုအပ်သည်။",
+    "addressisRequired":"လိပ်စာ ထည့်ရန်လိုအပ်သည်။",
+    "nrcisRequired":"မှတ်ပုံတင် ထည့်ရန်လိုအပ်သည်။",
+    "phoneNoisRequired":"ဖုန်းနံပါတ် ထည့်ရန်လိုအပ်သည်။"
   }
 }

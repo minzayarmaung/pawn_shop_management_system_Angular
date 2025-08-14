@@ -6,14 +6,14 @@
     </div>
     <button class="create-btn" (click)="openCreateModal()">
       <span class="btn-icon">+</span>
-      Create Item
+      {{ 'general.createItem' | translate }}
     </button>
   </div>
 
   <!-- Filters and Search Section -->
   <div class="filters-section">
     <div class="filter-group">
-      <label class="filter-label">Category Filter:</label>
+      <label class="filter-label">{{ 'general.categoryFilter' | translate}}:</label>
       <div class="category-filters">
         <button 
           *ngFor="let category of categories" 
@@ -46,19 +46,19 @@
   <div class="stats-overview">
     <div class="stat-item">
       <span class="stat-value">{{ filteredItems.length }}</span>
-      <span class="stat-label">Total Items</span>
+      <span class="stat-label">{{'pawn.stats.totalItems' | translate}}</span>
     </div>
     <div class="stat-item">
       <span class="stat-value">{{ getTotalValue() | currency }}</span>
-      <span class="stat-label">Total Value</span>
+      <span class="stat-label">{{'pawn.stats.totalValue' | translate}}</span>
     </div>
     <div class="stat-item">
       <span class="stat-value">{{ getActiveItems() }}</span>
-      <span class="stat-label">Active</span>
+      <span class="stat-label">{{'pawn.stats.active' | translate}}</span>
     </div>
     <div class="stat-item">
       <span class="stat-value">{{ getExpiredItems() }}</span>
-      <span class="stat-label">Expired</span>
+      <span class="stat-label">{{'pawn.stats.expired' | translate}}</span>
     </div>
   </div>
 
@@ -69,11 +69,11 @@
       <div class="table-actions">
         <select class="sort-select" [(ngModel)]="sortBy" (change)="onSortChange()">
           <!-- <option value="pawnDate">All</option> -->
-          <option value="pawnDate">Sort by Date</option>
-          <option value="amount">Sort by Amount</option>
-          <option value="customerName">Sort by Customer</option>
-          <option value="status">Sort by Status</option>
-          <option value="CheckedOutItems">Checked Out Items</option>
+          <option value="pawnDate">{{'pawn.table.sorting.byDate' | translate}}</option>
+          <option value="amount">{{'pawn.table.sorting.byAmount' | translate}}</option>
+          <option value="customerName">{{'pawn.table.sorting.byCustomer' | translate}}</option>
+          <option value="status">{{'pawn.table.sorting.byStatus' | translate}}</option>
+          <option value="CheckedOutItems">{{'pawn.table.sorting.checkedOutItems' | translate}}</option>
         </select>
       </div>
     </div>
@@ -82,16 +82,16 @@
       <table class="pawn-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Customer Name</th>
-            <th>Customer Nrc</th>
-            <th>Item Type</th>
+            <th>{{'pawn.table.headers.id' | translate}}</th>
+            <th>{{'pawn.table.headers.customerName' | translate}}</th>
+            <th>{{'pawn.table.headers.customerNrc' | translate}}</th>
+            <th>{{'pawn.table.headers.itemType' | translate}}</th>
             <th *ngFor="let column of getCurrentColumns()">{{ column.label }}</th>
-            <th>Amount</th>
-            <th>Pawn Date</th>
-            <th>Due Date</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>{{'pawn.table.headers.amount' | translate}}</th>
+            <th>{{'pawn.table.headers.pawnDate' | translate}}</th>
+            <th>{{'pawn.table.headers.dueDate' | translate}}</th>
+            <th>{{'pawn.table.headers.status' | translate}}</th>
+            <th>{{'common.actions' | translate}}</th>
           </tr>
         </thead>
         <tbody>
@@ -164,7 +164,7 @@
       <!-- Customer Information -->
       <div class="form-row">
         <div class="form-group">
-          <label for="customerName">Name</label>
+          <label for="customerName">{{'pawn.table.headers.customerName' | translate}}</label>
           <input 
             id="customerName" 
             type="text" 
@@ -172,12 +172,12 @@
             [class.error]="pawnForm.get('customerName')?.invalid && pawnForm.get('customerName')?.touched"
             [disabled]="isLoading">
           <div class="error-message" *ngIf="pawnForm.get('customerName')?.invalid && pawnForm.get('customerName')?.touched">
-            <span *ngIf="pawnForm.get('customerName')?.errors?.['required']">Name is required</span>
+            <span *ngIf="pawnForm.get('customerName')?.errors?.['required']">{{'validations.nameisRequired' | translate}}</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="customerAddress">Address</label>
+          <label for="customerAddress">{{'pawn.table.headers.address' | translate}}</label>
           <input 
             id="customerAddress" 
             type="text" 
@@ -185,17 +185,17 @@
             [class.error]="pawnForm.get('customerAddress')?.invalid && pawnForm.get('customerAddress')?.touched"
             [disabled]="isLoading">
           <div class="error-message" *ngIf="pawnForm.get('customerAddress')?.invalid && pawnForm.get('customerAddress')?.touched">
-            <span *ngIf="pawnForm.get('customerAddress')?.errors?.['required']">Address is required</span>
+            <span *ngIf="pawnForm.get('customerAddress')?.errors?.['required']">{{'validations.addressisRequired' | translate}}</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="customerNrc">NRC</label>
+          <label for="customerNrc">{{'pawn.table.headers.customerNrc' | translate}}</label>
           <input 
             id="customerNrc" 
             type="text" 
             formControlName="customerNrc"
-            placeholder="e.g., 12/LAMANA(N)"
+            placeholder="e.g., 12/LAMANA(N) 000000"
             [class.error]="pawnForm.get('customerNrc')?.invalid && pawnForm.get('customerNrc')?.touched"
             [disabled]="isLoading">
           <div class="error-message" *ngIf="pawnForm.get('customerNrc')?.invalid && pawnForm.get('customerNrc')?.touched">
@@ -204,7 +204,7 @@
         </div>
 
         <div class="form-group">
-          <label for="customerPhone">Phone</label>
+          <label for="customerPhone">{{'pawn.table.headers.customerPhone' | translate}}</label>
           <input 
             id="customerPhone" 
             type="tel" 
@@ -221,14 +221,14 @@
       <!-- Category and Amount -->
       <div class="form-row">
         <div class="form-group">
-          <label for="category">Category</label>
+          <label for="category">{{'pawn.table.headers.category' | translate}}</label>
           <select 
             id="category" 
             formControlName="category"
             (change)="onCategoryChange(pawnForm.get('category')?.value)" 
             [class.error]="pawnForm.get('category')?.invalid && pawnForm.get('category')?.touched"
             [disabled]="isLoading">
-            <option value="">Select Category</option>
+            <option value="">{{'general.selectCategory' | translate}}</option>
             <option *ngFor="let cat of categories.slice(1)" [value]="cat.value">{{ cat.label }}</option>
           </select>
           <div class="error-message" *ngIf="pawnForm.get('category')?.invalid && pawnForm.get('category')?.touched">
@@ -237,7 +237,7 @@
         </div>
         
         <div class="form-group">
-          <label for="amount">Amount</label>
+          <label for="amount">{{'pawn.table.headers.amount' | translate}}</label>
           <input 
             id="amount" 
             type="number" 
@@ -296,7 +296,7 @@
       <!-- Dates -->
       <div class="form-row">
         <div class="form-group">
-          <label for="pawnDate">Pawn Date</label>
+          <label for="pawnDate">{{'pawn.table.headers.pawnDate' | translate}}</label>
           <input 
             id="pawnDate" 
             type="date" 
@@ -310,7 +310,7 @@
         </div>
         
         <div class="form-group">
-          <label for="dueDate">Due Date</label>
+          <label for="dueDate">{{'pawn.table.headers.dueDate' | translate}}</label>
           <input 
             id="dueDate" 
             type="date" 
@@ -325,7 +325,7 @@
 
       <!-- Description -->
       <div class="form-group">
-        <label for="description">Description (Optional)</label>
+        <label for="description">{{'general.description' | translate}} (Optional)</label>
         <textarea 
           id="description" 
           formControlName="description"
