@@ -127,8 +127,8 @@
             <td class="actions-cell">
               <div class="action-buttons">
                 <button class="action-btn view" (click)="viewItem(item)" title="View Details">👁️</button>
-                <button *ngIf="selectedCategory !== 'CheckedOutItems'" class="action-btn edit" (click)="editItem(item)" title="Edit Item">✏️</button>
-                <button *ngIf="selectedCategory !== 'CheckedOutItems'" class="action-btn delete" (click)="deleteItem(item)" title="Delete Item">🗑️</button>
+                <button *ngIf="!isCheckedOutItemsView()" class="action-btn edit" (click)="editItem(item)" title="Edit Item">✏️</button>
+                <button *ngIf="!isCheckedOutItemsView()" class="action-btn delete" (click)="deleteItem(item)" title="Delete Item">🗑️</button>
               </div>
             </td>
           </tr>

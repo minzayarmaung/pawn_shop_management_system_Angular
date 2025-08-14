@@ -261,6 +261,10 @@ export class PawnItemsComponent implements OnInit {
   }
 
   onSortChange(): void {
+    // Update selectedCategory based on sortBy if it's CheckedOutItems
+    if (this.sortBy === 'CheckedOutItems') {
+      this.selectedCategory = 'all';
+    }
     this.loadItems();
     this.applyFilters();
   }
@@ -352,16 +356,23 @@ export class PawnItemsComponent implements OnInit {
   }
 
   // Statistics methods
+  // Stats calculation methods
   getTotalValue(): number {
-    return this.pawnItems.reduce((sum, item) => sum + item.amount, 0);
+    return this.filteredItems.reduce((total, item) => {
+      return total + (item.amount || 0);
+    }, 0);
   }
 
   getActiveItems(): number {
-    return this.pawnItems.filter(item => item.status === 'Active').length;
+    return this.filteredItems.filter(item => 
+      item.status && item.status.toLowerCase() === 'active'
+    ).length;
   }
 
   getExpiredItems(): number {
-    return this.pawnItems.filter(item => item.status === 'Expired').length;
+    return this.filteredItems.filter(item => 
+      item.status && (item.status.toLowerCase() === 'expired' || item.status.toLowerCase() === 'overdue' || item.status.toLowerCase() === 'inactive')
+    ).length;
   }
 
   // Modal methods
@@ -771,6 +782,11 @@ deleteItem(item: PawnItem): void {
       });
     } 
     return dynamicFields;
+  }
+
+    // Method to check if we're in checked out items view
+  isCheckedOutItemsView(): boolean {
+    return this.sortBy === 'CheckedOutItems' || this.selectedCategory === 'CheckedOutItems';
   }
 
 }
