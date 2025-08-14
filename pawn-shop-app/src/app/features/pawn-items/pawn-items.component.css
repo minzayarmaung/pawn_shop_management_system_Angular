@@ -228,14 +228,21 @@
 }
 
 .sort-select {
-  padding: 8px 16px;
-  border: 2px solid rgba(156, 163, 175, 0.2);
-  border-radius: 8px;
-  font-size: 14px;
-  background: rgba(255, 255, 255, 0.8);
+  padding: 10px 16px;
+  border: 2px solid rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.85);
   color: #374151;
   cursor: pointer;
+
+  min-width: 280px;       /* Give enough width for long Burmese text */
+  width: fit-content;     /* Adjust to content size */
+  max-width: 100%;        /* Prevent overflow on small screens */
+  box-sizing: border-box;
+  white-space: nowrap;    /* Keep text in one line */
 }
+
 
 .table-container {
   overflow-x: auto;
