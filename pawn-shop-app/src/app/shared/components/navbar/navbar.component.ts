@@ -1,32 +1,52 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { TranslatePipe } from '../../../services/pipes/translate.pipe';
+import { TranslationService } from '../../../services/TranslationService';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule , FormsModule ],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent {
-  currentLanguage: string;
+export class NavbarComponent implements OnInit, OnDestroy {
   dropdownOpen = false;
+  currentLanguage = 'en';
+  private subscription?: Subscription;
 
-  changeLanguage(arg0: string) {
-  throw new Error('Method not implemented.');
-  }
-
-  constructor() {
-    this.currentLanguage = 'en';
-  }
+  constructor(private translationService: TranslationService) {}
 
   ngOnInit(): void {
+    // Subscribe to language changes
+    this.subscription = this.translationService.currentLanguage$.subscribe(language => {
+      this.currentLanguage = language;
+    });
   }
 
-  toggleDropdown() {
-      this.dropdownOpen = !this.dropdownOpen;
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
+  toggleDropdown(): void {
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  async changeLanguage(language: string): Promise<void> {
+    await this.translationService.setLanguage(language);
+    this.dropdownOpen = false;
+  }
+
+  getCurrentLanguageLabel(): string {
+    return this.currentLanguage === 'en' ? 'English' : 'မြန်မာစာ';
+  }
+
+  getCurrentLanguageFlag(): string {
+    return this.currentLanguage === 'en' 
+      ? 'assets/images/language_icons/usa.png' 
+      : 'assets/images/language_icons/myanmar.png';
+  }
 }

@@ -1,0 +1,63 @@
+{
+  "nav": {
+    "sections": {
+      "main": "Main",
+      "management": "Management",
+      "analyticsSettings": "Analytics & Settings"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "pawnItems": "Pawn Items",
+      "customers": "Customers",
+      "reports": "Reports",
+      "setup": "Setup"
+    }
+  },
+  "common": {
+    "language": "Language",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "update": "Update",
+    "close": "Close"
+  },
+  "pawn": {
+    "table": {
+      "headers": {
+        "id": "ID",
+        "customerName": "Customer Name",
+        "customerNrc": "Customer NRC",
+        "itemType": "Item Type",
+        "amount": "Amount",
+        "pawnDate": "Pawn Date",
+        "dueDate": "Due Date",
+        "status": "Status"
+      },
+      "sorting": {
+        "byDate": "Sort by Date",
+        "byAmount": "Sort by Amount",
+        "byCustomer": "Sort by Customer",
+        "byStatus": "Sort by Status",
+        "checkedOutItems": "Checked Out Items"
+      },
+      "noData": {
+        "title": "No items found",
+        "description": "Try adjusting your search criteria",
+        "createFirst": "Start by creating your first pawn item"
+      }
+    },
+    "stats": {
+      "totalItems": "Total Items",
+      "totalValue": "Total Value",
+      "active": "Active",
+      "expired": "Expired"
+    }
+  }
+}

@@ -5,12 +5,14 @@ import { provideHttpClient } from '@angular/common/http'; // ✅ import this
 import { HttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
+import { TranslationService } from './services/TranslationService';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideClientHydration(),
-    provideHttpClient() // ✅ make HttpClient available globally
+    //provideClientHydration(),
+    provideHttpClient() ,// ✅ make HttpClient available globally
+    TranslationService 
   ]
 };
