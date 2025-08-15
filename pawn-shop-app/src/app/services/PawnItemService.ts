@@ -17,7 +17,7 @@ export class PawnItemService {
   }
 
   updatePawnItem(payload: any): Observable<any> {
-    return this.http.post(this.baseUrl, payload);
+    return this.http.post(this.baseUrl + '/update-pawn-item', payload);
   }
 
   getPawnItems(category: string, sortBy: string): Observable<ApiResponse<PawnItem[]>> {

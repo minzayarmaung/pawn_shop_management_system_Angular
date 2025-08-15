@@ -8,14 +8,17 @@ import { TranslatePipe } from "../../services/pipes/translate.pipe";
 
 interface PawnItem {
   id: string; // Make optional for creation
+  customerId: any;
   customerName: string;
   customerPhone: string; // Add this
   customerAddress: string; // Add this
   customerNrc: string;
   category: string;
   amount: number;
+  pawnId: any;
   pawnDate: string;
   dueDate: string;
+  voucherCode: any;
   status: 'Active' | 'Expired' | 'Redeemed' | 'Inactive'; // Make optional for creation
   description: string;
   [key: string]: any; // This allows dynamic properties
@@ -116,14 +119,18 @@ export class PawnItemsComponent implements OnInit {
     // Create form with validators
   private createForm(): FormGroup {
     return this.fb.group({
+      id:[''],
+      customerId: [''],
       customerName: ['', [Validators.required]],
       customerAddress: ['', [Validators.required]],
       customerNrc: ['', [Validators.required, CustomValidators.nrcValidator()]],
       customerPhone: ['', [Validators.required, CustomValidators.phoneNumberValidator()]],
       category: ['', [Validators.required]],
       amount: ['', [Validators.required, Validators.min(0.01)]],
+      pawnId:[''],
       pawnDate: [this.getEmptyFormData().pawnDate, Validators.required],
       dueDate: [this.getEmptyFormData().dueDate, Validators.required],
+      voucherCode:[''],
       description: ['']
     });
   }
@@ -420,7 +427,6 @@ export class PawnItemsComponent implements OnInit {
         ...item, 
         ...details
       };
-      
       // Populate the form with the flattened data
       this.populateForm(this.formData);
       this.showModal = true;
@@ -482,7 +488,7 @@ export class PawnItemsComponent implements OnInit {
       });
     }
 
-    savePawnItem(): void {
+  savePawnItem(): void {
     if (this.pawnForm.valid) {
       this.isLoading = true;
 
@@ -490,14 +496,17 @@ export class PawnItemsComponent implements OnInit {
 
       // Create base payload with static fields
       const payload = {
+        customerId: formValues.customerId,
         customerName: formValues.customerName,
         customerPhone: formValues.customerPhone,
         customerNrc: formValues.customerNrc,
         customerAddress: formValues.customerAddress,
         category: formValues.category,
         amount: formValues.amount,
+        pawnId:formValues.pawnId,
         pawnDate: formValues.pawnDate,
         dueDate: formValues.dueDate,
+        voucherCode: formValues.voucherCode,
         description: formValues.description || '',
         details: {} as Record<string, any>
       };
@@ -628,18 +637,22 @@ loadItems() {
       const items = Array.isArray(res.data) ? res.data : [];
       this.filteredItems = items.map((i: any) => ({
         id: i.id,
+        customerId: i.customerId,
         customerName: i.customerName ?? '',
         customerNrc: i.customerNrc ?? '',
         customerPhone: i.customerPhone ?? '',
         customerAddress: i.customerAddress ?? '',
         category: i.category,
         amount: i.amount,
+        pawnId: i.pawnId,
         pawnDate: i.pawnDate,
         dueDate: i.dueDate,
         status: i.status,
+        voucherCode: i.voucherCode,
         description: i.description,
         ...i.details
       }));
+      console.log(res.data);
     });
   }
 
@@ -647,51 +660,13 @@ loadItems() {
   this.isViewMode = true;
   this.isEditMode = false;
   
-  console.log('ViewItem - Full item object:', item);
-  console.log('ViewItem - Item keys:', Object.keys(item));
-  
   // Since the item is already flattened, you don't need to access details
   this.formData = { ...item };
-  
-  console.log('ViewItem - FormData:', this.formData);
-  console.log('ViewItem - Category value:', this.formData.category);
-  console.log('ViewItem - Storage value:', this.formData.storage);
-  console.log('ViewItem - Condition value:', this.formData.condition);
-  
-  console.log(this.formData)
+
   // Populate the form with the flattened data
   this.populateForm(this.formData);
   this.showModal = true;
 }
-
-// viewItem(item: PawnItem): void {
-//     this.isViewMode = true;
-//     this.isEditMode = false;
-    
-//     // Use bracket notation to access details
-//   console.log('Full item object:', item);
-//   console.log('Item keys:', Object.keys(item));
-//   console.log('Type of item:', typeof item);
-  
-//   // Try different ways to access details
-//   console.log('item.details (dot notation):', (item as any).details);
-//   console.log('item["details"] (bracket notation):', item['details']);
-//   console.log('Does item have details property?:', 'details' in item);
-  
-//   // Use bracket notation to access details
-//   const details = item['details'] || {};
-//   console.log('details extracted:', details);
-//   console.log('details keys:', Object.keys(details));
-//     // Flatten the item data including details
-//     this.formData = { 
-//       ...item, 
-//       ...details,
-//     };
-//     console.log('Condition raw value:', JSON.stringify(item.condition));
-//     // Populate the form with the flattened data
-//     this.populateForm(this.formData);
-//     this.showModal = true;
-// }
 
 deleteItem(item: PawnItem): void {
   if (confirm(`Are you sure you want to mark pawn item ${item.id} as inactive?`)) {
@@ -754,15 +729,18 @@ deleteItem(item: PawnItem): void {
   setTimeout(() => {
     // Now patch all values including dynamic fields
     this.pawnForm.patchValue({
+      customerId: data.customerId,
       customerName: data.customerName,
       customerNrc: data.customerNrc,
       customerAddress: data.customerAddress,
       customerPhone: data.customerPhone,
       category: data.category,
       amount: data.amount,
+      pawnId: data.pawnId,
       pawnDate: data.pawnDate,
       dueDate: data.dueDate,
       description: data.description || '',
+      voucherCode: data.voucherCode,
       condition: data.condition,
       // Dynamic fields will be patched automatically since they're now form controls
       ...this.extractDynamicFields(data)
