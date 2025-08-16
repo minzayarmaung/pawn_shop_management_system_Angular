@@ -5,29 +5,13 @@
     </div>
 
     <div class="navbar-menu">
-      <div class="navbar-links">
-        <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
-          <i class="icon">🏠</i>
-          {{'nav.items.dashboard' | translate }}
-        </a>
-        <a routerLink="/settings" routerLinkActive="active" class="nav-link">
-          <i class="icon">⚙️</i>
-          {{'nav.sections.setting' | translate}}
-        </a>
-      </div>
 
-      <div class="navbar-profile">
-        <div class="profile-menu">
-          <div class="profile-avatar">
-            <span>👤</span>
-          </div>
-        </div>
-
-      <div class="language-switch">
-        <button class="language-toggle" (click)="toggleDropdown()">
-          🌐 <span class="language-text">{{'common.language' | translate}}</span>
+    <!-- Language Switch -->
+    <div class="language-switch">
+        <button class="language-toggle" (click)="toggleLanguageDropdown()">
+          🌐 <span class="language-text">{{ 'common.language' | translate }}</span>
         </button>
-        <div class="dashboard-nav-dropdown-menu" *ngIf="dropdownOpen">
+        <div class="dashboard-nav-dropdown-menu" *ngIf="isLanguageDropdownOpen">
           <a href="javascript:void(0)" class="dashboard-nav-dropdown-item" (click)="changeLanguage('en')">
             <img src="assets/images/language_icons/usa.png" alt="English flag" class="flag-icon" />
             English
@@ -37,9 +21,24 @@
             မြန်မာစာ
           </a>
         </div>
+    </div>
+
+      <!-- Profile -->
+      <div class="navbar-profile" (click)="toggleProfileDropdown()">
+      <div class="profile-menu">
+          <div class="profile-avatar">
+            <span>👤</span>
+          </div>
       </div>
 
+        <!-- Profile Dropdown -->
+        <div class="dropdown" *ngIf="isProfileDropdownOpen">
+          <a routerLink="/profile" class="dropdown-item">Profile</a>
+          <a routerLink="/settings" class="dropdown-item">Settings</a>
+          <a (click)="logout()" class="dropdown-item">Logout</a>
+        </div>
       </div>
+
     </div>
   </div>
 </nav>

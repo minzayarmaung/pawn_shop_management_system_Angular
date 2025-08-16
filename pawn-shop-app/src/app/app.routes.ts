@@ -3,6 +3,7 @@ import { HomeComponent } from './shared/components/home/home.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { PawnItemsComponent } from './features/pawn-items/pawn-items.component';
 import { ConfigurationComponent } from './features/configuration/configuration.component';
+import { ProfileComponent } from './shared/components/profile/profile.component';
 
 export const routes: Routes = [
   {
@@ -12,7 +13,8 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'pawn-items', component: PawnItemsComponent },
       { path: 'configuration', component: ConfigurationComponent },
+      { path: 'profile' , component : ProfileComponent }
     ]
-  }
+  } ,
 ];
 

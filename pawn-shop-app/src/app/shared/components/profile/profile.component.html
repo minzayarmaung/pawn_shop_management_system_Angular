@@ -1,0 +1,209 @@
+<div class="profile-container">
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="header-content">
+      <span class="header-icon">👤</span>
+      <h2 class="header-title">{{ 'profile.title' | translate }}</h2>
+    </div>
+    <button 
+      type="button" 
+      class="edit-btn" 
+      (click)="toggleEdit()"
+      [disabled]="isLoading">
+      <span class="btn-icon">{{ isEditing ? '❌' : '✏️' }}</span>
+      <span class="btn-text">{{ isEditing ? ('profile.cancel' | translate) : ('profile.edit' | translate) }}</span>
+    </button>
+  </div>
+
+  <div class="profile-content">
+    <!-- Profile Picture Section -->
+    <div class="profile-picture-section">
+      <div class="picture-container">
+        <div class="picture-wrapper">
+          <img 
+            [src]="getProfilePicUrl()" 
+            [alt]="'profile.profilePicture' | translate"
+            class="profile-picture"
+            (error)="onImageError($event)">
+          <div class="picture-overlay" *ngIf="isEditing">
+            <label for="profilePicInput" class="upload-label">
+              <span class="upload-icon">📷</span>
+              <span class="upload-text">{{ 'profile.changePicture' | translate }}</span>
+            </label>
+            <input 
+              id="profilePicInput"
+              type="file" 
+              accept="image/*" 
+              (change)="onFileSelected($event)"
+              class="file-input">
+          </div>
+          <!-- Upload Progress Indicator -->
+          <div class="upload-progress" *ngIf="isUploadingImage">
+            <div class="progress-spinner"></div>
+            <span class="progress-text">{{ 'profile.uploadingImage' | translate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Form -->
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+      <div class="form-sections">
+        <!-- Personal Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="section-icon">ℹ️</span>
+            {{ 'profile.sections.personalInfo' | translate }}
+          </h3>
+          
+          <div class="form-grid">
+            <!-- Name Field -->
+            <div class="form-group">
+              <label class="form-label" for="name">
+                {{ 'profile.fields.name' | translate }} <span class="required">*</span>
+              </label>
+              <input 
+                id="name"
+                type="text" 
+                formControlName="name"
+                class="form-control"
+                [class.error]="getFieldError('name')"
+                [readonly]="!isEditing"
+                placeholder="{{ 'profile.placeholders.name' | translate }}">
+              <div class="error-message" *ngIf="getFieldError('name')">
+                {{ getFieldError('name') | translate }}
+              </div>
+            </div>
+
+            <!-- NRC Field -->
+            <div class="form-group">
+              <label class="form-label" for="nrc">
+                {{ 'profile.fields.nrc' | translate }} <span class="required">*</span>
+              </label>
+              <input 
+                id="nrc"
+                type="text" 
+                formControlName="nrc"
+                class="form-control"
+                [class.error]="getFieldError('nrc')"
+                [readonly]="!isEditing"
+                placeholder="{{ 'profile.placeholders.nrc' | translate }}">
+              <div class="error-message" *ngIf="getFieldError('nrc')">
+                {{ getFieldError('nrc') | translate }}
+              </div>
+            </div>
+
+            <!-- Phone Field -->
+            <div class="form-group">
+              <label class="form-label" for="phone">
+                {{ 'profile.fields.phone' | translate }} <span class="required">*</span>
+              </label>
+              <input 
+                id="phone"
+                type="tel" 
+                formControlName="phone"
+                class="form-control"
+                [class.error]="getFieldError('phone')"
+                [readonly]="!isEditing"
+                placeholder="{{ 'profile.placeholders.phone' | translate }}">
+              <div class="error-message" *ngIf="getFieldError('phone')">
+                {{ getFieldError('phone') | translate }}
+              </div>
+            </div>
+
+            <!-- Date of Birth Field -->
+            <div class="form-group">
+              <label class="form-label" for="dob">
+                {{ 'profile.fields.dob' | translate }} <span class="required">*</span>
+              </label>
+              <input 
+                id="dob"
+                type="date" 
+                formControlName="dob"
+                class="form-control"
+                [class.error]="getFieldError('dob')"
+                [readonly]="!isEditing">
+              <div class="error-message" *ngIf="getFieldError('dob')">
+                {{ getFieldError('dob') | translate }}
+              </div>
+            </div>
+
+            <!-- Gender Field -->
+            <div class="form-group">
+              <label class="form-label" for="gender">
+                {{ 'profile.fields.gender' | translate }} <span class="required">*</span>
+              </label>
+              <select 
+                id="gender"
+                formControlName="gender"
+                class="form-control"
+                [class.error]="getFieldError('gender')"
+                [disabled]="!isEditing">
+                <option value="">{{ 'profile.placeholders.gender' | translate }}</option>
+                <option *ngFor="let option of genderOptions" [value]="option.value">
+                  {{ option.label | translate }}
+                </option>
+              </select>
+              <div class="error-message" *ngIf="getFieldError('gender')">
+                {{ getFieldError('gender') | translate }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Information Section (Read-only) -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="section-icon">📧</span>
+            {{ 'profile.sections.userInfo' | translate }}
+          </h3>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <label class="info-label">{{ 'profile.fields.email' | translate }}</label>
+              <div class="info-value">
+                <span class="info-icon">📧</span>
+                <span>{{ userInfo.email || ('profile.notAvailable' | translate) }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <label class="info-label">{{ 'profile.fields.usageTime' | translate }}</label>
+              <div class="info-value">
+                <span class="info-icon">⏱️</span>
+                <span>{{ userInfo.usageTime || ('profile.notAvailable' | translate) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions" *ngIf="isEditing">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cancelEdit()"
+          [disabled]="isLoading">
+          <span class="btn-icon">🚫</span>
+          <span class="btn-text">{{ 'profile.cancel' | translate }}</span>
+        </button>
+        
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="profileForm.invalid || isLoading || isUploadingImage">
+          <span class="btn-icon" *ngIf="!isLoading && !isUploadingImage">💾</span>
+          <span class="loading-spinner" *ngIf="isLoading || isUploadingImage"></span>
+          <span class="btn-text">
+            {{ 
+              isUploadingImage ? ('profile.uploadingImage' | translate) : 
+              isLoading ? ('profile.saving' | translate) : 
+              ('profile.save' | translate) 
+            }}
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

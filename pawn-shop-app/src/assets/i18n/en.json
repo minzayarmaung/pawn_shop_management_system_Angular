@@ -11,7 +11,8 @@
       "pawnItems": "Pawn Items",
       "customers": "Customers",
       "reports": "Reports",
-      "configuration": "Configuration"
+      "configuration": "Configuration",
+      "profile":"Profile"
     }
   },
   "common": {
@@ -75,5 +76,41 @@
     "addressisRequired":"Address is Required",
     "nrcisRequired":"NRC is Required",
     "phoneNoisRequired":"Phone is Required"
+  },
+  "profile":{
+    "title":"Profile",
+    "edit":"Edit Profile",
+    "changePicture":"Upload Picture",
+    "save":"Save",
+    "cancel":"Cancel",
+    "sections":{
+      "personalInfo":"Personal Info",
+      "userInfo":"User Info"
+    },
+    "fields":{
+      "name":"Name",
+      "nrc":"National ID",
+      "phone":"Phone",
+      "dob":"Date of Birth",
+      "gender":"Gender",
+      "email":"Email",
+      "usageTime":"Usage Time"
+    },
+    "gender":{
+      "male":"Male",
+      "female":"Female"
+    },
+    "placeholders":{
+      "name":"Example - Kyaw Kyaw",
+      "nrc":"Example - 1/xxx(N)123456",
+      "phone":"Example - 09123456789",
+      "gender":"Example - Male / Female"
+    },
+    "errors":{
+      "nameRequired":"Name is Required",
+      "nrcRequired":"National ID is Required",
+      "phoneRequired":"Phone is Required",
+      "genderRequired":"Gender is Required"
+    }
   }
 }
