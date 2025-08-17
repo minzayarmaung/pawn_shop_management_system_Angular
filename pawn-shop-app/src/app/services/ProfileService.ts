@@ -19,7 +19,7 @@ export interface PresignedUrlResponse {
   providedIn: 'root'
 })
 export class ProfileService {
-  private apiUrl = `${environment.apiBaseUrl}/api`;
+  private apiUrl = `${environment.apiBaseUrl}/auth`;
 
   constructor(private http: HttpClient) {}
 
