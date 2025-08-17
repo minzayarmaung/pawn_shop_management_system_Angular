@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { environment } from '../shared/commons/api.config';
 import { Profile } from '../models/Profile.model';
 
@@ -15,72 +15,64 @@ export interface PresignedUrlResponse {
   s3Key: string;
 }
 
+export interface PresignedUrlRequest {
+  fileName: string;
+  fileType: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProfileService {
-  private apiUrl = `${environment.apiBaseUrl}/auth`;
+  private apiUrl = `${environment.apiBaseUrl}/auth/profile`; // Fixed path to match Spring Boot
 
   constructor(private http: HttpClient) {}
 
   // Get user profile
   getProfile(): Observable<Profile> {
-    return this.http.get<Profile>(`${this.apiUrl}/profile`);
+    return this.http.get<Profile>(`${environment.apiBaseUrl}/auth/profile`);
   }
 
   // Update profile (without image)
   updateProfile(profile: Partial<Profile>): Observable<Profile> {
-    return this.http.put<Profile>(`${this.apiUrl}/profile`, profile);
+    return this.http.put<Profile>(`${environment.apiBaseUrl}/auth/profile`, profile);
   }
 
   // Method 1: Direct upload to your backend (which then uploads to S3)
-  uploadProfilePictureViaBackend(file: File): Observable<S3UploadResponse> {
+  uploadProfilePictureViaBackend(file: File): Observable<string> {
     const formData = new FormData();
-    formData.append('profilePic', file);
+    formData.append('file', file); // Match @RequestParam name
     
-    return this.http.post<S3UploadResponse>(`${this.apiUrl}/profile/upload-picture`, formData);
+    return this.http.post<string>(`${this.apiUrl}/upload`, formData);
   }
 
   // Method 2: Get presigned URL and upload directly to S3
   getPresignedUrl(fileName: string, fileType: string): Observable<PresignedUrlResponse> {
-    return this.http.post<PresignedUrlResponse>(`${this.apiUrl}/profile/presigned-url`, {
+    const request: PresignedUrlRequest = {
       fileName,
       fileType
-    });
+    };
+    return this.http.post<PresignedUrlResponse>(`${this.apiUrl}/presigned-url`, request);
   }
 
   // Upload file directly to S3 using presigned URL
   uploadToS3(presignedUrl: string, file: File): Observable<any> {
-    const headers = new HttpHeaders({
-      'Content-Type': file.type
-    });
+    // Don't set Content-Type header for S3 - let browser handle it
+    // const headers = new HttpHeaders();
 
     return this.http.put(presignedUrl, file, { 
-      headers,
+      // headers,
       reportProgress: true,
       observe: 'events'
     });
   }
 
-  // Method 3: Complete S3 upload workflow (recommended)
-  async uploadProfilePicture(file: File): Promise<S3UploadResponse> {
+  // In your ProfileService, update this method:
+  async uploadProfilePicture(file: File): Promise<string> {
     try {
-      // Step 1: Get presigned URL from your backend
-      const presignedResponse = await this.getPresignedUrl(file.name, file.type).toPromise();
-      
-      if (!presignedResponse) {
-        throw new Error('Failed to get presigned URL');
-      }
-
-      // Step 2: Upload directly to S3
-      await this.uploadToS3(presignedResponse.uploadUrl, file).toPromise();
-      
-      // Step 3: Return S3 URL and key
-      return {
-        s3Url: presignedResponse.s3Url,
-        s3Key: presignedResponse.s3Key
-      };
-      
+      // Use the direct backend upload - much simpler!
+      const s3Url = await firstValueFrom(this.uploadProfilePictureViaBackend(file));
+      return s3Url;
     } catch (error) {
       console.error('Error uploading to S3:', error);
       throw error;
@@ -88,8 +80,13 @@ export class ProfileService {
   }
 
   // Delete profile picture from S3
-  deleteProfilePicture(s3Key: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/profile/picture/${encodeURIComponent(s3Key)}`);
+  deleteProfilePicture(fileName: string): Observable<string> {
+    return this.http.delete<string>(`${this.apiUrl}/file/${encodeURIComponent(fileName)}`);
+  }
+
+  // Get file URL
+  getFileUrl(fileName: string): Observable<string> {
+    return this.http.get<string>(`${this.apiUrl}/file/${encodeURIComponent(fileName)}`);
   }
 
   // Helper method to generate S3 key
@@ -165,5 +162,20 @@ export class ProfileService {
 
       img.src = URL.createObjectURL(file);
     });
+  }
+
+  uploadImageOnly(file: File): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+      
+    console.log('🌐 Calling /upload-image endpoint...');
+    return this.http.post(`${this.apiUrl}/upload-image`, formData, {
+      responseType: 'text' // This is important for string responses!
+    });
+  }
+
+  uploadProfileData(profileData: any): Observable<any> {
+    console.log('🌐 Calling /upload-profile endpoint...');
+    return this.http.post<any>(`${this.apiUrl}/upload-profile`, profileData);
   }
 }

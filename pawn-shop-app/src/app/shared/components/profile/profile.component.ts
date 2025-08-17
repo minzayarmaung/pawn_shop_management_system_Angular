@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../../services/pipes/translate.pipe';
 import { TranslationService } from '../../../services/TranslationService';
 import { ProfileService } from '../../../services/ProfileService';
+import { ToastService } from '../../../services/ToastService';
+import { firstValueFrom, Observable } from 'rxjs';
 
 export interface UserProfile {
   id?: number;
@@ -49,7 +51,8 @@ export class ProfileComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private profileService: ProfileService,
-    private translationService: TranslationService
+    private translationService: TranslationService,
+    private toastService : ToastService 
   ) {
     this.profileForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -64,20 +67,20 @@ export class ProfileComponent implements OnInit {
     this.loadProfile();
   }
 
-  loadProfile(): void {
-    this.profileService.getProfile().subscribe({
-      next: (profile) => {
-        this.profileForm.patchValue(profile);
-        this.currentProfilePicUrl = profile.profilePic || null;
-        this.previewUrl = profile.profilePic || null;
-      },
-      error: (error) => {
-        console.error('Error loading profile', error);
-        // Fallback to mock data
-        this.loadMockProfile();
-      }
-    });
-  }
+  // loadProfile(): void {
+  //   this.profileService.getProfile().subscribe({
+  //     next: (profile) => {
+  //       this.profileForm.patchValue(profile);
+  //       this.currentProfilePicUrl = profile.profilePic || null;
+  //       this.previewUrl = profile.profilePic || null;
+  //     },
+  //     error: (error) => {
+  //       console.error('Error loading profile', error);
+  //       // Fallback to mock data
+  //       this.loadMockProfile();
+  //     }
+  //   });
+  // }
 
   private loadMockProfile(): void {
     const mockProfile = {
@@ -132,66 +135,227 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  onSubmit(): void {
-    if (this.profileForm.valid) {
-      this.isLoading = true;
-      
-      // If there's a new image, upload to S3 first
-      if (this.selectedFile) {
-        this.uploadImageToS3().then((s3Url) => {
-          this.saveProfile(s3Url);
-        }).catch((error) => {
-          console.error('Error uploading image to S3', error);
-          this.isLoading = false;
-        });
-      } else {
-        // Save profile without image change
-        this.saveProfile(this.currentProfilePicUrl);
-      }
-    } else {
-      this.markFormGroupTouched();
-    }
-  }
-
-  private async uploadImageToS3(): Promise<string> {
-    if (!this.selectedFile) {
-      throw new Error('No file selected');
-    }
-
-    this.isUploadingImage = true;
+onSubmit(): void {
+  if (this.profileForm.valid) {
+    this.isLoading = true;
     
-    try {
-      // Optional: Resize image before upload
-      // const resizedFile = await this.profileService.resizeImage(this.selectedFile);
-      
-      const uploadResponse = await this.profileService.uploadProfilePicture(this.selectedFile);
-      return uploadResponse.s3Url;
-      
-    } finally {
-      this.isUploadingImage = false;
+    // If there's a new image, upload image first, then save profile
+    if (this.selectedFile) {
+      this.uploadImageThenSaveProfile();
+    } else {
+      // Save profile without image change - use existing profilePic value
+      this.saveProfileData(this.currentProfilePicUrl);
     }
+  } else {
+    this.markFormGroupTouched();
+    this.toastService.showWarning(
+      'Form Invalid',
+      'Please check all required fields and try again.'
+    );
+  }
+}
+
+private async uploadImageThenSaveProfile(): Promise<void> {
+  try {
+    // Show upload start toast
+    this.toastService.showInfo(
+      'Uploading Image...',
+      'Please wait while we upload your image.'
+    );
+    
+    // Step 1: Upload image only and get image URL
+    const imageUrl = await this.uploadImageOnly();
+    
+    // Show image upload success
+    this.toastService.showSuccess(
+      'Image Uploaded!',
+      'Image uploaded successfully. Now saving your profile...'
+    );
+    
+    // Step 2: Save profile data with the image URL
+    this.saveProfileData(imageUrl);
+    
+  } catch (error) {
+    console.error('Error in upload process:', error);
+    this.handleUploadError(error);
+  }
+}
+
+private async uploadImageOnly(): Promise<string> {
+  if (!this.selectedFile) {
+    throw new Error('No file selected');
   }
 
-  private saveProfile(profilePicUrl: string | null): void {
-    const profileData = {
-      ...this.profileForm.value,
-      profilePic: profilePicUrl || undefined // Convert null to undefined for the API
-    };
+  this.isUploadingImage = true;
+  
+  try {
+    // Validate file before upload
+    const validation = this.profileService.validateImageFile(this.selectedFile);
+    if (!validation.valid) {
+      throw new Error(validation.error || 'File validation failed');
+    }
 
-    this.profileService.updateProfile(profileData).subscribe({
-      next: (response) => {
-        console.log('Profile updated successfully', response);
-        this.currentProfilePicUrl = profilePicUrl;
-        this.selectedFile = null;
-        this.isEditing = false;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error updating profile', error);
-        this.isLoading = false;
-      }
+    console.log('🔍 About to call profileService.uploadImageOnly...');
+
+    // Upload image and get URL/name - using Promise wrapper for better error handling
+    const imageUrl = await new Promise<string>((resolve, reject) => {
+      this.profileService.uploadImageOnly(this.selectedFile!).subscribe({
+        next: (url: string) => {
+          console.log('✅ Service returned URL:', url);
+          // Clean the URL response (remove quotes if present)
+          const cleanUrl = typeof url === 'string' ? url.replace(/"/g, '') : url;
+          console.log('🧹 Cleaned URL:', cleanUrl);
+          resolve(cleanUrl);
+        },
+        error: (error) => {
+          console.error('❌ Service error:', error);
+          // Even if there's an error, check if we got a 200 response
+          if (error.status === 200 && error.error && typeof error.error === 'string') {
+            console.log('🔧 Got 200 response in error handler:', error.error);
+            const cleanUrl = error.error.replace(/"/g, '');
+            resolve(cleanUrl);
+          } else {
+            reject(error);
+          }
+        }
+      });
     });
+    
+    return imageUrl;
+    
+  } catch (error) {
+    console.error('💥 Error in uploadImageOnly:', error);
+    throw error;
+  } finally {
+    this.isUploadingImage = false;
   }
+}
+
+private saveProfileData(profilePicUrl: string | null): void {
+  // Prepare profile data to match your ProfileDataRequest structure exactly
+  const profileData = {
+    profilePic: profilePicUrl, // Just the image URL/name from upload-image
+    name: this.profileForm.value.name,
+    nrc: this.profileForm.value.nrc,
+    phone: this.profileForm.value.phone,
+    dob: this.profileForm.value.dob
+    // Note: Not sending gender since it's not in your ProfileDataRequest
+  };
+
+  console.log('Sending profile data to /upload-profile:', profileData);
+
+  this.profileService.uploadProfileData(profileData).subscribe({
+    next: (response) => {
+      this.handleSaveSuccess(response, profilePicUrl);
+    },
+    error: (error) => {
+      this.handleSaveError(error);
+    }
+  });
+}
+
+private handleSaveSuccess(response: any, profilePicUrl: string | null): void {
+  // Show success toast
+  this.toastService.showSuccess(
+    'Profile Saved!',
+    response.message || 'Your profile has been successfully updated.'
+  );
+  
+  console.log('Profile saved successfully:', response);
+  
+  // Update component state
+  this.currentProfilePicUrl = profilePicUrl;
+  this.previewUrl = profilePicUrl; // Update preview to match saved image
+  this.selectedFile = null;
+  this.isEditing = false;
+  this.isLoading = false;
+  
+  // Optional: Refresh profile data from server
+  // this.loadProfile();
+}
+
+private handleSaveError(error: any): void {
+  let errorMsg = 'Failed to save profile';
+  
+  // Handle different error types
+  if (error.status === 400) {
+    errorMsg = 'Invalid profile data. Please check your inputs.';
+  } else if (error.status === 401) {
+    errorMsg = 'Session expired. Please login again.';
+  } else if (error.status === 413) {
+    errorMsg = 'File too large. Please select a smaller image.';
+  } else if (error.error?.message) {
+    errorMsg = error.error.message;
+  }
+  
+  this.toastService.showError(
+    'Save Failed!', 
+    errorMsg
+  );
+  console.error('Error saving profile:', error);
+  this.isLoading = false;
+}
+
+private handleUploadError(error: any): void {
+  let errorMsg = 'Failed to upload image';
+  
+  if (error.message) {
+    errorMsg = error.message;
+  }
+  
+  this.toastService.showError(
+    'Upload Failed!', 
+    errorMsg
+  );
+  this.isLoading = false;
+}
+
+// Optional: Method to retry the entire process
+retryProfileUpdate(): void {
+  if (this.selectedFile) {
+    this.uploadImageThenSaveProfile();
+  } else {
+    this.saveProfileData(this.currentProfilePicUrl);
+  }
+}
+
+// Add this import at the top of your component file if you want to use firstValueFrom
+// import { firstValueFrom } from 'rxjs';
+
+// OR use the Promise-based approach above (recommended for debugging)
+
+// Update your existing loadProfile method to handle the new structure
+loadProfile(): void {
+  this.profileService.getProfile().subscribe({
+    next: (profile) => {
+      // Only update form fields that exist in ProfileDataRequest
+      this.profileForm.patchValue({
+        name: profile.name,
+        nrc: profile.nrc,
+        phone: profile.phone,
+        dob: profile.dob,
+        gender: profile.gender // Keep this for display, but won't be sent to save
+      });
+      this.currentProfilePicUrl = profile.profilePic || null;
+      this.previewUrl = profile.profilePic || null;
+      
+      // Update userInfo for display
+      this.userInfo = {
+        email: profile.email || null,
+        usageTime: profile.usageTime || null
+      };
+    },
+    error: (error) => {
+      console.error('Error loading profile', error);
+      this.toastService.showError(
+        'Load Failed',
+        'Failed to load profile data. Please refresh the page.'
+      );
+      // Fallback to mock data
+      this.loadMockProfile();
+    }
+  });
+}
 
   private markFormGroupTouched(): void {
     Object.keys(this.profileForm.controls).forEach(key => {

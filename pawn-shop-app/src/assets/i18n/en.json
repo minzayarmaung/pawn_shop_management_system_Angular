@@ -66,7 +66,7 @@
     }
   },
   "general":{
-    "description":"ဖော်ပြချက်",
+    "description":"Description",
     "selectCategory": "Select Cateogry",
     "createItem": "Create Item",
     "categoryFilter": "Category Filter"

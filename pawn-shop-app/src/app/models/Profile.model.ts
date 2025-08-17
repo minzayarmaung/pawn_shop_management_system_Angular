@@ -9,4 +9,6 @@ export interface Profile {
   gender: 'male' | 'female' | 'other';
   email?: string | null;
   usageTime?: string | null;
+  message: string,
+  data: string,
 }
