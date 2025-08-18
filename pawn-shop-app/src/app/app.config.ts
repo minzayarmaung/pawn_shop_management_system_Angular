@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { TranslationService } from './services/TranslationService';
+import { BrowserAnimationsModule, provideAnimations } from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -13,6 +14,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     //provideClientHydration(),
     provideHttpClient() ,// ✅ make HttpClient available globally
-    TranslationService 
+    TranslationService ,
+    provideAnimations(),
+    BrowserAnimationsModule
   ]
 };

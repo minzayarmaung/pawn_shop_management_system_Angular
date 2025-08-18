@@ -164,16 +164,15 @@ export class ProfileService {
     });
   }
 
-  uploadImageOnly(file: File): Observable<string> {
+  uploadImageOnly(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-      
+    
     console.log('🌐 Calling /upload-image endpoint...');
-    return this.http.post(`${this.apiUrl}/upload-image`, formData, {
-      responseType: 'text' // This is important for string responses!
-    });
+    return this.http.post<any>(`${this.apiUrl}/upload-image`, formData);
   }
 
+  // Upload profile data - matches your /upload-profile endpoint  
   uploadProfileData(profileData: any): Observable<any> {
     console.log('🌐 Calling /upload-profile endpoint...');
     return this.http.post<any>(`${this.apiUrl}/upload-profile`, profileData);

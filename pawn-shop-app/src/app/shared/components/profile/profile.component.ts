@@ -197,31 +197,30 @@ private async uploadImageOnly(): Promise<string> {
 
     console.log('🔍 About to call profileService.uploadImageOnly...');
 
-    // Upload image and get URL/name - using Promise wrapper for better error handling
-    const imageUrl = await new Promise<string>((resolve, reject) => {
+    const imageName = await new Promise<string>((resolve, reject) => {
       this.profileService.uploadImageOnly(this.selectedFile!).subscribe({
-        next: (url: string) => {
-          console.log('✅ Service returned URL:', url);
-          // Clean the URL response (remove quotes if present)
-          const cleanUrl = typeof url === 'string' ? url.replace(/"/g, '') : url;
-          console.log('🧹 Cleaned URL:', cleanUrl);
-          resolve(cleanUrl);
+        next: (res: any) => {
+          console.log('✅ Service returned ApiResponse:', res);
+
+          // Extract filename from your ApiResponse structure
+          if (res && res.success === 1 && res.data) {
+            const fileName = res.data; // e.g. "94e9ae4c-e704-441a-bb98-dc14ce259fd8_Post-12 (MZM).png"
+            console.log('📁 Extracted fileName:', fileName);
+            resolve(fileName);
+          } else {
+            console.error('❌ Invalid response structure:', res);
+            reject(new Error('Upload response missing data field or failed'));
+          }
         },
         error: (error) => {
           console.error('❌ Service error:', error);
-          // Even if there's an error, check if we got a 200 response
-          if (error.status === 200 && error.error && typeof error.error === 'string') {
-            console.log('🔧 Got 200 response in error handler:', error.error);
-            const cleanUrl = error.error.replace(/"/g, '');
-            resolve(cleanUrl);
-          } else {
-            reject(error);
-          }
+          reject(error);
         }
       });
     });
-    
-    return imageUrl;
+
+    console.log('🎯 Final imageName to use:', imageName);
+    return imageName;
     
   } catch (error) {
     console.error('💥 Error in uploadImageOnly:', error);
@@ -230,6 +229,8 @@ private async uploadImageOnly(): Promise<string> {
     this.isUploadingImage = false;
   }
 }
+
+
 
 private saveProfileData(profilePicUrl: string | null): void {
   // Prepare profile data to match your ProfileDataRequest structure exactly
@@ -318,6 +319,7 @@ retryProfileUpdate(): void {
     this.saveProfileData(this.currentProfilePicUrl);
   }
 }
+
 
 // Add this import at the top of your component file if you want to use firstValueFrom
 // import { firstValueFrom } from 'rxjs';
