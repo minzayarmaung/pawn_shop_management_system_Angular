@@ -78,6 +78,7 @@
     "phoneNoisRequired":"ဖုန်းနံပါတ် ထည့်ရန်လိုအပ်သည်။"
   },
   "profile":{
+    "uploadingImage":"သိမ်းဆည်းနေသည်။",
     "title":"ကိုယ်ရေးအကျဉ်း",
     "edit":"ပြင်ဆင်ရန်",
     "changePicture":"ပုံအသစ်တင်ရန်",

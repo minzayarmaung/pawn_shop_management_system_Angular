@@ -78,6 +78,7 @@
     "phoneNoisRequired":"Phone is Required"
   },
   "profile":{
+    "uploadingImage":"Saving",
     "title":"Profile",
     "edit":"Edit Profile",
     "changePicture":"Upload Picture",

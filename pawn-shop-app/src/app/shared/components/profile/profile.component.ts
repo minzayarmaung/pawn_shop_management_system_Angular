@@ -8,18 +8,18 @@ import { ProfileService } from '../../../services/ProfileService';
 import { ToastService } from '../../../services/ToastService';
 import { firstValueFrom, Observable } from 'rxjs';
 
-export interface UserProfile {
-  id?: number;
-  profilePic?: string | null;   // S3 URL - can be string, null, or undefined
-  profilePicKey?: string | null; // S3 Object Key - can be string, null, or undefined
-  name: string;
-  nrc: string;
-  phone: string;
-  dob: string;
-  gender: 'male' | 'female' | 'other';
-  email?: string | null;
-  usageTime?: string | null;
-}
+// export interface UserProfile {
+//   id?: number;
+//   profilePic?: string | null;   // S3 URL - can be string, null, or undefined
+//   profilePicKey?: string | null; // S3 Object Key - can be string, null, or undefined
+//   name: string;
+//   nrc: string;
+//   phone: string;
+//   dob: string;
+//   gender: 'male' | 'female' | 'other';
+//   email?: string | null;
+//   usageTime?: string | null;
+// }
 
 @Component({
   selector: 'app-profile',
@@ -59,7 +59,8 @@ export class ProfileComponent implements OnInit {
       nrc: ['', [Validators.required, Validators.pattern(/^\d+\/[A-Z]+\([A-Z]\)\d+$/)]],
       phone: ['', [Validators.required, Validators.pattern(/^(\+?95|0)?[1-9]\d{7,9}$/)]],
       dob: ['', [Validators.required]],
-      gender: ['', [Validators.required]]
+      gender: ['', [Validators.required]],
+      userId:['']
     });
   }
 
@@ -89,7 +90,8 @@ export class ProfileComponent implements OnInit {
       phone: '09123456789',
       dob: '1990-01-01',
       gender: 'male',
-      profilePic: 'https://your-s3-bucket.s3.amazonaws.com/profile-pics/user-123.jpg'
+      profilePic: 'https://your-s3-bucket.s3.amazonaws.com/profile-pics/user-123.jpg',
+      userId:'1'
     };
     
     this.profileForm.patchValue(mockProfile);
@@ -239,7 +241,8 @@ private saveProfileData(profilePicUrl: string | null): void {
     name: this.profileForm.value.name,
     nrc: this.profileForm.value.nrc,
     phone: this.profileForm.value.phone,
-    dob: this.profileForm.value.dob
+    dob: this.profileForm.value.dob,
+    userId: this.profileForm.value.userId
     // Note: Not sending gender since it's not in your ProfileDataRequest
   };
 
@@ -336,7 +339,8 @@ loadProfile(): void {
         nrc: profile.nrc,
         phone: profile.phone,
         dob: profile.dob,
-        gender: profile.gender // Keep this for display, but won't be sent to save
+        gender: profile.gender,// Keep this for display, but won't be sent to save
+        userId: profile.userId
       });
       this.currentProfilePicUrl = profile.profilePic || null;
       this.previewUrl = profile.profilePic || null;
