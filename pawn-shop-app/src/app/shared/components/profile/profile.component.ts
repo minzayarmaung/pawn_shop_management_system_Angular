@@ -60,7 +60,7 @@ export class ProfileComponent implements OnInit {
       phone: ['', [Validators.required, Validators.pattern(/^(\+?95|0)?[1-9]\d{7,9}$/)]],
       dob: ['', [Validators.required]],
       gender: ['', [Validators.required]],
-      userId:['']
+      userid:['']
     });
   }
 
@@ -91,7 +91,7 @@ export class ProfileComponent implements OnInit {
       dob: '1990-01-01',
       gender: 'male',
       profilePic: 'https://your-s3-bucket.s3.amazonaws.com/profile-pics/user-123.jpg',
-      userId:'1'
+      userid:'1'
     };
     
     this.profileForm.patchValue(mockProfile);
@@ -200,7 +200,7 @@ private async uploadImageOnly(): Promise<string> {
     console.log('🔍 About to call profileService.uploadImageOnly...');
 
     const imageName = await new Promise<string>((resolve, reject) => {
-      this.profileService.uploadImageOnly(this.selectedFile!).subscribe({
+      this.profileService.uploadImageOnly(this.selectedFile! , this.profileForm.value.userid , this.profileForm.value.name).subscribe({
         next: (res: any) => {
           console.log('✅ Service returned ApiResponse:', res);
 
@@ -242,7 +242,7 @@ private saveProfileData(profilePicUrl: string | null): void {
     nrc: this.profileForm.value.nrc,
     phone: this.profileForm.value.phone,
     dob: this.profileForm.value.dob,
-    userId: this.profileForm.value.userId
+    userid: this.profileForm.value.userid
     // Note: Not sending gender since it's not in your ProfileDataRequest
   };
 
@@ -340,7 +340,7 @@ loadProfile(): void {
         phone: profile.phone,
         dob: profile.dob,
         gender: profile.gender,// Keep this for display, but won't be sent to save
-        userId: profile.userId
+        userid: profile.userid
       });
       this.currentProfilePicUrl = profile.profilePic || null;
       this.previewUrl = profile.profilePic || null;

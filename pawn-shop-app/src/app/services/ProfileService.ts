@@ -164,9 +164,11 @@ export class ProfileService {
     });
   }
 
-  uploadImageOnly(file: File): Observable<any> {
+  uploadImageOnly(file: File , userid : number, userName: string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('userId', userid.toString());
+    formData.append('userName', userName.toString());
     
     console.log('🌐 Calling /upload-image endpoint...');
     return this.http.post<any>(`${this.apiUrl}/upload-image`, formData);

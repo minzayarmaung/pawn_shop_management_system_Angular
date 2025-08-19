@@ -11,5 +11,5 @@ export interface Profile {
   usageTime?: string | null;
   message: string,
   data: string,
-  userId: any
+  userid: any
 }
