@@ -7,6 +7,7 @@ import { TranslationService } from '../../../services/TranslationService';
 import { ProfileService } from '../../../services/ProfileService';
 import { ToastService } from '../../../services/ToastService';
 import { firstValueFrom, Observable } from 'rxjs';
+import { CustomValidators } from '../../commons/validators/customerValidators';
 
 // export interface UserProfile {
 //   id?: number;
@@ -56,8 +57,8 @@ export class ProfileComponent implements OnInit {
   ) {
     this.profileForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
-      nrc: ['', [Validators.required, Validators.pattern(/^\d+\/[A-Z]+\([A-Z]\)\d+$/)]],
-      phone: ['', [Validators.required, Validators.pattern(/^(\+?95|0)?[1-9]\d{7,9}$/)]],
+      nrc: ['', [Validators.required, CustomValidators.nrcValidator()]],
+      phone: ['', [Validators.required, CustomValidators.phoneNumberValidator()]],
       dob: ['', [Validators.required]],
       gender: ['', [Validators.required]],
       userid:['']
@@ -200,6 +201,7 @@ private async uploadImageOnly(): Promise<string> {
     console.log('🔍 About to call profileService.uploadImageOnly...');
 
     const imageName = await new Promise<string>((resolve, reject) => {
+      this.profileForm.value.userid = 1;
       this.profileService.uploadImageOnly(this.selectedFile! , this.profileForm.value.userid , this.profileForm.value.name).subscribe({
         next: (res: any) => {
           console.log('✅ Service returned ApiResponse:', res);
@@ -242,6 +244,7 @@ private saveProfileData(profilePicUrl: string | null): void {
     nrc: this.profileForm.value.nrc,
     phone: this.profileForm.value.phone,
     dob: this.profileForm.value.dob,
+    gender: this.profileForm.value.gender,
     userid: this.profileForm.value.userid
     // Note: Not sending gender since it's not in your ProfileDataRequest
   };
@@ -331,24 +334,37 @@ retryProfileUpdate(): void {
 
 // Update your existing loadProfile method to handle the new structure
 loadProfile(): void {
-  this.profileService.getProfile().subscribe({
+  // Set userid before making the call
+  const userid = 1; // You might want to get this from a user service or auth service
+  
+  this.profileService.getProfile(userid).subscribe({
     next: (profile) => {
-      // Only update form fields that exist in ProfileDataRequest
+      console.log('Received profile data:', profile); // Add this for debugging
+      
+      // Update form with the received data
       this.profileForm.patchValue({
         name: profile.name,
         nrc: profile.nrc,
         phone: profile.phone,
         dob: profile.dob,
-        gender: profile.gender,// Keep this for display, but won't be sent to save
+        gender: profile.gender,
         userid: profile.userid
       });
-      this.currentProfilePicUrl = profile.profilePic || null;
-      this.previewUrl = profile.profilePic || null;
+      
+      // Handle profile picture - build full URL if needed
+      this.currentProfilePicUrl = profile.profilePic ? 
+        `${this.profileService.getBaseImageUrl()}/${profile.profilePic}` : null;
+      this.previewUrl = this.currentProfilePicUrl;
+
+      this.toastService.showSuccess(
+      'Profile Data fetched Successfully.',
+      'Load profile data successfully.'
+    );
       
       // Update userInfo for display
       this.userInfo = {
         email: profile.email || null,
-        usageTime: profile.usageTime || null
+        usageTime: profile.usageTime || null // This might need to come from elsewhere
       };
     },
     error: (error) => {
@@ -402,5 +418,11 @@ loadProfile(): void {
   onImageError(event: Event): void {
     const imgElement = event.target as HTMLImageElement;
     imgElement.src = '/assets/images/profile/defaultAvatar.png';
+  }
+
+      // Get NRC error message
+  getNrcErrorMessage(): string {
+    const nrcControl = this.profileForm.get('nrc');
+    return CustomValidators.getNrcErrorMessage(nrcControl?.errors || null);
   }
 }

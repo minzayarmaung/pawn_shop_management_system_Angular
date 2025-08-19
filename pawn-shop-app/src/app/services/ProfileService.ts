@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, firstValueFrom } from 'rxjs';
+import { Observable, catchError, firstValueFrom, map } from 'rxjs';
 import { environment } from '../shared/commons/api.config';
 import { Profile } from '../models/Profile.model';
+import { ApiResponse } from '../models/api-response.model';
 
 export interface S3UploadResponse {
   s3Url: string;
@@ -29,8 +30,23 @@ export class ProfileService {
   constructor(private http: HttpClient) {}
 
   // Get user profile
-  getProfile(): Observable<Profile> {
-    return this.http.get<Profile>(`${environment.apiBaseUrl}/auth/profile`);
+  getProfile(userid: number): Observable<Profile> {
+    return this.http.get<ApiResponse<Profile[]>>(`${this.apiUrl}/getProfileData`, {
+      params: {userid: userid.toString()}
+    }).pipe(
+      map(response => {
+        // Extract the first profile from the data array
+        if (response.success === 1 && response.data && response.data.length > 0) {
+          return response.data[0]; // Return the first profile object
+        } else {
+          throw new Error(response.message || 'No profile data found');
+        }
+      }),
+      catchError(error => {
+        console.error('Error fetching profile:', error);
+        throw error;
+      })
+    );
   }
 
   // Update profile (without image)
@@ -179,4 +195,8 @@ export class ProfileService {
     console.log('🌐 Calling /upload-profile endpoint...');
     return this.http.post<any>(`${this.apiUrl}/upload-profile`, profileData);
   }
+
+  getBaseImageUrl(): string {
+  return `${this.apiUrl}/images`; // Adjust path as needed
+}
 }

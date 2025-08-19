@@ -1,6 +1,10 @@
 export interface ApiResponse<T> {
   success: number;
   code: number;
-  message: string;
+  meta: {
+    endpoint: string;
+    method: string;
+  };
   data: T;
+  message: string;
 }

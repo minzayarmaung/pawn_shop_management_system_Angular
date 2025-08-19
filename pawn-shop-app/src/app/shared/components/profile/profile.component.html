@@ -89,7 +89,7 @@
                 [readonly]="!isEditing"
                 placeholder="{{ 'profile.placeholders.nrc' | translate }}">
               <div class="error-message" *ngIf="getFieldError('nrc')">
-                {{ getFieldError('nrc') | translate }}
+                {{ getNrcErrorMessage() }}
               </div>
             </div>
 
