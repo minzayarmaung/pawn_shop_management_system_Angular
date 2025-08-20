@@ -182,7 +182,7 @@
       <div class="form-actions" *ngIf="isEditing">
         <button 
           type="button" 
-          class="btn btn-secondary" 
+          class="btn btn-danger" 
           (click)="cancelEdit()"
           [disabled]="isLoading">
           <span class="btn-icon">🚫</span>
@@ -192,7 +192,9 @@
         <button 
           type="submit" 
           class="btn btn-primary" 
-          [disabled]="profileForm.invalid || isLoading || isUploadingImage">
+          (click)="debugButtonState()"
+
+          [class.loading]="isLoading || isUploadingImage">
           <span class="btn-icon" *ngIf="!isLoading && !isUploadingImage">💾</span>
           <span class="loading-spinner" *ngIf="isLoading || isUploadingImage"></span>
           <span class="btn-text">
