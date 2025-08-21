@@ -17,7 +17,7 @@
 
   <div class="profile-content">
     <!-- Profile Picture Section -->
-      <div class="profile-picture-section">
+    <div class="profile-picture-section">
     <div class="picture-container">
       <div class="picture-wrapper">
         <img 
@@ -210,7 +210,7 @@
           type="submit" 
           class="btn btn-primary" 
           (click)="debugButtonState()"
-
+          [disabled]="profileForm.invalid || isLoading || isUploadingImage"
           [class.loading]="isLoading || isUploadingImage">
           <span class="btn-icon" *ngIf="!isLoading && !isUploadingImage">💾</span>
           <span class="loading-spinner" *ngIf="isLoading || isUploadingImage"></span>
