@@ -13,23 +13,23 @@ static nrcValidator(): ValidatorFn {
       return null; // Let required validator handle empty values
     }
 
-    const value = control.value.toString().toUpperCase();
+    const value = control.value.toString().trim();
 
     // Regex explanation:
-    // ^(1[0-4]|[1-9])       => Number 1-14
-    // \/                    => Slash
-    // ([A-Z]{6})            => 6 letters
-    // \(([A-Z])\)           => One uppercase letter inside parentheses
-    // ([0-9]{6})$           => Exactly 6 digits at end
+    // ^(1[0-4]|[1-9]|[၁-၉]|၁[၀-၄]) => Numbers 1–14 (supports Myanmar and English digits)
+    // \/                            => Slash
+    // ([A-Z]{3,6}|[\u1000-\u109F]{3}) => Township code (English 3–6 letters OR Myanmar 3 letters)
+    // \((N|နိုင်)\)                 => Citizen type (English (N) or Myanmar (နိုင်))
+    // ([0-9]{6}|[၀-၉]{6})$         => 6 digits in either English or Myanmar
 
-    const nrcPattern = /^(1[0-4]|[1-9])\/([A-Z]{6})\(([A-Z])\)([0-9]{6})$/;
+    const nrcPattern = /^(1[0-4]|[1-9]|[၁-၉]|၁[၀-၄])\/([A-Z]{3,6}|[\u1000-\u109F]{3})\((N|နိုင်)\)([0-9]{6}|[၀-၉]{6})$/;
 
     if (!nrcPattern.test(value)) {
       return {
         nrcInvalid: {
-          message: 'NRC Invalid: Format should be like 12/LAKANA(N)123456',
+          message: 'NRC Invalid: Format should be like 12/လမန(နိုင်)၁၂၃၄၅၆ or 12/LAKANA(N)123456',
           actualValue: control.value,
-          expectedFormat: '1-14/XXXXXX(X)000000'
+          expectedFormat: '1-14/XXXXXX(N or နိုင်)000000'
         }
       };
     }
@@ -37,6 +37,8 @@ static nrcValidator(): ValidatorFn {
     return null;
   };
 }
+
+
 
   /**
    * Myanmar Phone Number Validator
