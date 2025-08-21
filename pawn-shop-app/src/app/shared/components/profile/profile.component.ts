@@ -7,6 +7,7 @@ import { ProfileService } from '../../../services/ProfileService';
 import { ToastService } from '../../../services/ToastService';
 import { firstValueFrom, Observable } from 'rxjs';
 import { CustomValidators } from '../../commons/validators/customerValidators';
+import { environment } from '../../commons/api.config';
 
 @Component({
   selector: 'app-profile',
@@ -23,6 +24,7 @@ export class ProfileComponent implements OnInit {
   isEditing = false;
   isLoading = false;
   isUploadingImage = false;
+  showDebugInfo = true;
 
   userInfo = {
     email: 'user@example.com' as string | null,
@@ -57,7 +59,7 @@ export class ProfileComponent implements OnInit {
   private loadMockProfile(): void {
     const mockProfile = {
       name: 'John Doe',
-      nrc: '12/MAYA(N)123456',
+      nrc: '12/MaYaKa(N)123456',
       phone: '09123456789',
       dob: '1990-01-01',
       gender: 'male',
@@ -100,6 +102,10 @@ export class ProfileComponent implements OnInit {
     } else {
       this.isEditing = !this.isEditing;
     }
+  }
+
+  toggleDebugInfo(): void {
+    this.showDebugInfo = !this.showDebugInfo;
   }
 
   onSubmit(): void {
@@ -242,6 +248,7 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+    // Update handleSaveSuccess method
   private handleSaveSuccess(response: any, profilePicUrl: string | null): void {
     this.toastService.showSuccess(
       'Profile Saved!',
@@ -249,10 +256,9 @@ export class ProfileComponent implements OnInit {
     );
     
     console.log('✅ Profile saved successfully:', response);
+    console.log('🖼️ Profile pic from response:', response.data?.profilePic);
     
-    // Reset all states
-    this.currentProfilePicUrl = profilePicUrl;
-    this.previewUrl = profilePicUrl;
+    // Reset states first
     this.selectedFile = null;
     this.isEditing = false;
     this.isLoading = false;
@@ -260,7 +266,39 @@ export class ProfileComponent implements OnInit {
     
     // Mark form as pristine
     this.profileForm.markAsPristine();
+    
+    // 🔥 IMPORTANT: Update the current profile pic URL from the backend response
+    if (response.data && response.data.profilePic) {
+      this.currentProfilePicUrl = this.profileService.constructImageUrl(response.data.profilePic);
+      this.previewUrl = this.currentProfilePicUrl;
+      console.log('🎯 Updated profile pic URL from response:', this.currentProfilePicUrl);
+    }
+    
+    // Reload profile to ensure everything is in sync
+    setTimeout(() => {
+      this.loadProfile();
+    }, 500); // Small delay to ensure backend has processed
   }
+
+  // private handleSaveSuccess(response: any, profilePicUrl: string | null): void {
+  //   this.toastService.showSuccess(
+  //     'Profile Saved!',
+  //     response.message || 'Your profile has been successfully updated.'
+  //   );
+    
+  //   console.log('✅ Profile saved successfully:', response);
+    
+  //   // Reset all states
+  //   this.currentProfilePicUrl = profilePicUrl;
+  //   this.previewUrl = profilePicUrl;
+  //   this.selectedFile = null;
+  //   this.isEditing = false;
+  //   this.isLoading = false;
+  //   this.isUploadingImage = false;
+    
+  //   // Mark form as pristine
+  //   this.profileForm.markAsPristine();
+  // }
 
   private handleSaveError(error: any): void {
     let errorMsg = 'Failed to save profile';
@@ -306,72 +344,139 @@ export class ProfileComponent implements OnInit {
   }
 
   loadProfile(): void {
-    const userid = 1;
-    console.log('🔍 Loading profile for userid:', userid);
-    
-    this.profileService.getProfile(userid).subscribe({
-      next: (profile) => {
-        console.log('✅ Received profile data:', profile);
-        
-        this.profileForm.patchValue({
-          name: profile.name || '',
-          nrc: profile.nrc || '',
-          phone: profile.phone || '',
-          dob: profile.dob || '',
-          gender: profile.gender || '',
-          userid: profile.userid || userid
-        });
-        
-        this.currentProfilePicUrl = profile.profilePic ? 
-          `${this.profileService.getBaseImageUrl()}/${profile.profilePic}` : null;
-        this.previewUrl = this.currentProfilePicUrl;
+  const userid = 1;
+  console.log('🔍 Loading profile for userid:', userid);
+  
+  this.profileService.getProfile(userid).subscribe({
+    next: (profile) => {
+      console.log('✅ Received profile data:', profile);
+      console.log('🖼️ Raw profile pic value:', profile.profilePic);
+      
+      this.profileForm.patchValue({
+        name: profile.name || '',
+        nrc: profile.nrc || '',
+        phone: profile.phone || '',
+        dob: profile.dob || '',
+        gender: profile.gender || '',
+        userid: profile.userid || userid
+      });
+      
+      // 🔥 FIX: Use the constructImageUrl method
+      this.currentProfilePicUrl = this.profileService.constructImageUrl(this.profileForm.value.profilePicUrl);
+      this.previewUrl = this.currentProfilePicUrl;
+      
+      console.log('🎯 Final image URL set:', this.currentProfilePicUrl);
 
+      if (!this.isEditing) {
         this.toastService.showSuccess(
           'Profile Loaded',
           'Profile data loaded successfully.'
         );
-        
-        this.userInfo = {
-          email: profile.email || null,
-          usageTime: profile.usageTime || null
-        };
-      },
-      error: (error) => {
-        console.error('❌ Error loading profile:', error);
-        
-        // Check if it's a "profile not found" error
-        if (error.message && error.message.includes('Profile not found')) {
-          console.log('📝 No profile found - setting up for new profile creation');
-          
-          // Initialize form with userid for new profile
-          this.profileForm.patchValue({
-            userid: userid,
-            name: '',
-            nrc: '',
-            phone: '',
-            dob: '',
-            gender: ''
-          });
-          
-          this.toastService.showInfo(
-            'No Profile Found',
-            'Please fill in your profile information.'
-          );
-          
-          // Automatically enable editing mode for new profiles
-          this.isEditing = true;
-          
-        } else {
-          // Other errors - show error and use mock data
-          this.toastService.showError(
-            'Load Failed',
-            error.message || 'Failed to load profile data. Using default data.'
-          );
-          this.loadMockProfile();
-        }
       }
-    });
-  }
+      
+      this.userInfo = {
+        email: profile.email || null,
+        usageTime: profile.usageTime || null
+      };
+    },
+    error: (error) => {
+      console.error('❌ Error loading profile:', error);
+      
+      if (error.message && error.message.includes('Profile not found')) {
+        this.profileForm.patchValue({
+          userid: userid,
+          name: '',
+          nrc: '',
+          phone: '',
+          dob: '',
+          gender: ''
+        });
+        
+        this.toastService.showInfo(
+          'No Profile Found',
+          'Please fill in your profile information.'
+        );
+        
+        this.isEditing = true;
+        
+      } else {
+        this.toastService.showError(
+          'Load Failed',
+          error.message || 'Failed to load profile data. Using default data.'
+        );
+        this.loadMockProfile();
+      }
+    }
+  });
+}
+
+  // loadProfile(): void {
+  //   const userid = 1;
+  //   console.log('🔍 Loading profile for userid:', userid);
+    
+  //   this.profileService.getProfile(userid).subscribe({
+  //     next: (profile) => {
+  //       console.log('✅ Received profile data:', profile);
+        
+  //       this.profileForm.patchValue({
+  //         name: profile.name || '',
+  //         nrc: profile.nrc || '',
+  //         phone: profile.phone || '',
+  //         dob: profile.dob || '',
+  //         gender: profile.gender || '',
+  //         userid: profile.userid || userid
+  //       });
+        
+  //       this.currentProfilePicUrl = profile.profilePic ? 
+  //         `${this.profileService.getBaseImageUrl()}/${profile.profilePic}` : null;
+  //       this.previewUrl = this.currentProfilePicUrl;
+
+  //       this.toastService.showSuccess(
+  //         'Profile Loaded',
+  //         'Profile data loaded successfully.'
+  //       );
+        
+  //       this.userInfo = {
+  //         email: profile.email || null,
+  //         usageTime: profile.usageTime || null
+  //       };
+  //     },
+  //     error: (error) => {
+  //       console.error('❌ Error loading profile:', error);
+        
+  //       // Check if it's a "profile not found" error
+  //       if (error.message && error.message.includes('Profile not found')) {
+  //         console.log('📝 No profile found - setting up for new profile creation');
+          
+  //         // Initialize form with userid for new profile
+  //         this.profileForm.patchValue({
+  //           userid: userid,
+  //           name: '',
+  //           nrc: '',
+  //           phone: '',
+  //           dob: '',
+  //           gender: ''
+  //         });
+          
+  //         this.toastService.showInfo(
+  //           'No Profile Found',
+  //           'Please fill in your profile information.'
+  //         );
+          
+  //         // Automatically enable editing mode for new profiles
+  //         this.isEditing = true;
+          
+  //       } else {
+  //         // Other errors - show error and use mock data
+  //         this.toastService.showError(
+  //           'Load Failed',
+  //           error.message || 'Failed to load profile data. Using default data.'
+  //         );
+  //         this.loadMockProfile();
+  //       }
+  //     }
+  //   });
+  // }
 
   private markFormGroupTouched(): void {
     Object.keys(this.profileForm.controls).forEach(key => {
@@ -408,8 +513,21 @@ export class ProfileComponent implements OnInit {
   }
 
   getProfilePicUrl(): string {
-    return this.previewUrl || this.currentProfilePicUrl || '/assets/images/profile/defaultAvatar.png';
+  const imageUrl = this.previewUrl || this.currentProfilePicUrl;
+  console.log('🖼️ Getting profile pic URL:', {
+    previewUrl: this.previewUrl,
+    currentProfilePicUrl: this.currentProfilePicUrl,
+    finalUrl: imageUrl || '/assets/images/profile/defaultAvatar.png'
+  });
+  return imageUrl || '/assets/images/profile/defaultAvatar.png';
   }
+
+    // Add debugging method to check image loading
+  onImageLoad(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    console.log('✅ Image loaded successfully:', imgElement.src);
+  }
+
 
   onImageError(event: Event): void {
     const imgElement = event.target as HTMLImageElement;
@@ -419,6 +537,11 @@ export class ProfileComponent implements OnInit {
   getNrcErrorMessage(): string {
     const nrcControl = this.profileForm.get('nrc');
     return CustomValidators.getNrcErrorMessage(nrcControl?.errors || null);
+  }
+    // Get Phone error message  
+  getPhoneErrorMessage(): string {
+    const phoneControl = this.profileForm.get('phone');
+    return CustomValidators.getPhoneErrorMessage(phoneControl?.errors || null);
   }
   
   debugButtonState(): void {
@@ -430,4 +553,27 @@ export class ProfileComponent implements OnInit {
     formValue: this.profileForm.value
   });
 }
+
+  // Add method to test image URL directly
+  testImageUrl(url: string): void {
+    console.log('🧪 Testing image URL:', url);
+    const img = new Image();
+    img.onload = () => console.log('✅ Image URL is valid');
+    img.onerror = () => console.error('❌ Image URL is invalid');
+    img.src = url;
+  }
+
+    // Add method to log all image-related URLs
+  debugImageUrls(): void {
+    console.log('🐛 IMAGE DEBUG INFO:');
+    console.log('- previewUrl:', this.previewUrl);
+    console.log('- currentProfilePicUrl:', this.currentProfilePicUrl);
+    console.log('- getProfilePicUrl():', this.getProfilePicUrl());
+    console.log('- Base image URL:', this.profileService.getBaseImageUrl());
+    console.log('- Environment API base:', environment.apiBaseUrl);
+    
+    if (this.currentProfilePicUrl) {
+      this.testImageUrl(this.currentProfilePicUrl);
+    }
+  }
 }

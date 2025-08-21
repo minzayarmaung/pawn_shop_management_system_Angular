@@ -17,34 +17,51 @@
 
   <div class="profile-content">
     <!-- Profile Picture Section -->
-    <div class="profile-picture-section">
-      <div class="picture-container">
-        <div class="picture-wrapper">
-          <img 
-            [src]="getProfilePicUrl()" 
-            [alt]="'profile.profilePicture' | translate"
-            class="profile-picture"
-            (error)="onImageError($event)">
-          <div class="picture-overlay" *ngIf="isEditing">
-            <label for="profilePicInput" class="upload-label">
-              <span class="upload-icon">📷</span>
-              <span class="upload-text">{{ 'profile.changePicture' | translate }}</span>
-            </label>
-            <input 
-              id="profilePicInput"
-              type="file" 
-              accept="image/*" 
-              (change)="onFileSelected($event)"
-              class="file-input">
-          </div>
-          <!-- Upload Progress Indicator -->
-          <div class="upload-progress" *ngIf="isUploadingImage">
-            <div class="progress-spinner"></div>
-            <span class="progress-text">{{ 'profile.uploadingImage' | translate }}</span>
-          </div>
+      <div class="profile-picture-section">
+    <div class="picture-container">
+      <div class="picture-wrapper">
+        <img 
+          [src]="getProfilePicUrl()" 
+          [alt]="'profile.profilePicture' | translate"
+          class="profile-picture"
+          (load)="onImageLoad($event)"
+          (error)="onImageError($event)">
+        
+        <!-- Add debugging info in development -->
+        <div class="debug-info" *ngIf="showDebugInfo" style="position: absolute; bottom: 0; left: 0; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px;">
+          <div>Preview: {{ previewUrl || 'null' }}</div>
+          <div>Current: {{ currentProfilePicUrl || 'null' }}</div>
+          <div>Final: {{ getProfilePicUrl() }}</div>
+        </div>
+        
+        <div class="picture-overlay" *ngIf="isEditing">
+          <label for="profilePicInput" class="upload-label">
+            <span class="upload-icon">📷</span>
+            <span class="upload-text">{{ 'profile.changePicture' | translate }}</span>
+          </label>
+          <input 
+            id="profilePicInput"
+            type="file" 
+            accept="image/*" 
+            (change)="onFileSelected($event)"
+            class="file-input">
+        </div>
+        
+        <!-- Upload Progress Indicator -->
+        <div class="upload-progress" *ngIf="isUploadingImage">
+          <div class="progress-spinner"></div>
+          <span class="progress-text">{{ 'profile.uploadingImage' | translate }}</span>
         </div>
       </div>
+      
+      <!-- Add test button for debugging (remove in production) -->
+      <button type="button" *ngIf="showDebugInfo && currentProfilePicUrl" 
+              (click)="testImageUrl(currentProfilePicUrl!)"
+              class="btn btn-sm btn-info">
+        🧪 Test Image URL
+      </button>
     </div>
+  </div>
 
     <!-- Profile Form -->
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
@@ -88,9 +105,9 @@
                 [class.error]="getFieldError('nrc')"
                 [readonly]="!isEditing"
                 placeholder="{{ 'profile.placeholders.nrc' | translate }}">
-              <div class="error-message" *ngIf="getFieldError('nrc')">
-                {{ getNrcErrorMessage() }}
-              </div>
+                <div class="error-message" *ngIf="profileForm.get('nrc')?.invalid && profileForm.get('nrc')?.touched">
+                <span>{{ getNrcErrorMessage() }}</span>
+                </div>
             </div>
 
             <!-- Phone Field -->
@@ -106,9 +123,9 @@
                 [class.error]="getFieldError('phone')"
                 [readonly]="!isEditing"
                 placeholder="{{ 'profile.placeholders.phone' | translate }}">
-              <div class="error-message" *ngIf="getFieldError('phone')">
-                {{ getFieldError('phone') | translate }}
-              </div>
+                <div class="error-message" *ngIf="profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched">
+                <span>{{ getPhoneErrorMessage() }}</span>
+                </div>
             </div>
 
             <!-- Date of Birth Field -->

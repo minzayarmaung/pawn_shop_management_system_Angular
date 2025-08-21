@@ -302,7 +302,27 @@ export class ProfileService {
   }
 
   // Get base image URL
-  getBaseImageUrl(): string {
-    return `${this.apiUrl}/images`;
+    getBaseImageUrl(): string {
+        return `${environment.apiBaseUrl}/auth/profile/images`;
+    }
+
+    constructImageUrl(profilePic: string | null): string | null {
+    if (!profilePic) return null;
+    
+    console.log('🖼️ Constructing image URL for:', profilePic);
+    
+    // If it's already a full URL (starts with http), return as is
+    if (profilePic.startsWith('http://') || profilePic.startsWith('https://')) {
+      console.log('✅ Full URL detected:', profilePic);
+      return profilePic;
+    }
+    
+    // If it's just a filename, construct the full URL
+    const baseUrl = this.getBaseImageUrl();
+    const fullUrl = `${baseUrl}/${profilePic}`;
+    console.log('🔗 Constructed URL:', fullUrl);
+    
+    return fullUrl;
   }
+
 }
