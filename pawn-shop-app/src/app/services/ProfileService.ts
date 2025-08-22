@@ -302,27 +302,74 @@ export class ProfileService {
   }
 
   // Get base image URL
-    getBaseImageUrl(): string {
-        return `${environment.apiBaseUrl}/auth/profile/images`;
-    }
-
-    constructImageUrl(profilePic: string | null): string | null {
-    if (!profilePic) return null;
-    
-    console.log('🖼️ Constructing image URL for:', profilePic);
-    
-    // If it's already a full URL (starts with http), return as is
-    if (profilePic.startsWith('http://') || profilePic.startsWith('https://')) {
-      console.log('✅ Full URL detected:', profilePic);
-      return profilePic;
-    }
-    
-    // If it's just a filename, construct the full URL
-    const baseUrl = this.getBaseImageUrl();
-    const fullUrl = `${baseUrl}/${profilePic}`;
-    console.log('🔗 Constructed URL:', fullUrl);
-    
-    return fullUrl;
+  getBaseImageUrl(): string {
+      console.log('🌐 Environment API base URL:', environment.apiBaseUrl);
+      
+      // Option 1: If your backend serves images at /auth/profile/images
+      const imageBaseUrl = `${environment.apiBaseUrl}/auth/profile/images`;
+      console.log('🌐 Constructed image base URL:', imageBaseUrl);
+      return imageBaseUrl;
   }
+
+  constructImageUrl(profilePic: string | null): string | null {
+    if (!profilePic || profilePic.trim() === '') {
+      return null;
+    }
+    
+    const trimmedProfilePic = profilePic.trim();
+    
+    // If it's already a full URL, return as is
+    if (trimmedProfilePic.startsWith('http://') || trimmedProfilePic.startsWith('https://')) {
+      return trimmedProfilePic;
+    }
+    
+    // For now, return the backend endpoint that gives us the S3 URL
+    // This is a fallback - the async version is preferred
+    return `${this.apiUrl}/file/${encodeURIComponent(trimmedProfilePic)}`;
+  }
+
+  getImageUrl(fileName: string): Observable<string> {
+    console.log('🌐 Getting S3 URL for filename:', fileName);
+    return this.http.get<string>(`${this.apiUrl}/file/${encodeURIComponent(fileName)}`, {
+      responseType: 'text' as 'json'
+    }).pipe(
+      map(url => {
+        console.log('✅ Received S3 URL from backend:', url);
+        return url;
+      }),
+      catchError(error => {
+        console.error('❌ Error getting S3 URL:', error);
+        return throwError(() => new Error('Failed to get image URL'));
+      })
+    );
+  }
+
+  async constructImageUrlAsync(profilePic: string | null): Promise<string | null> {
+  console.log('🏗️ constructImageUrlAsync called with:', profilePic);
+  
+  if (!profilePic || profilePic.trim() === '') {
+    console.log('🏗️ No profilePic provided, returning null');
+    return null;
+  }
+  
+  const trimmedProfilePic = profilePic.trim();
+  
+  // If it's already a full URL (starts with http), return as is
+  if (trimmedProfilePic.startsWith('http://') || trimmedProfilePic.startsWith('https://')) {
+    console.log('✅ Full URL detected:', trimmedProfilePic);
+    return trimmedProfilePic;
+  }
+  
+  try {
+    // Get the actual S3 URL from your backend
+    console.log('🌐 Fetching S3 URL from backend for:', trimmedProfilePic);
+    const s3Url = await firstValueFrom(this.getImageUrl(trimmedProfilePic));
+    console.log('🔗 Got S3 URL from backend:', s3Url);
+    return s3Url;
+  } catch (error) {
+    console.error('❌ Failed to get S3 URL:', error);
+    return null;
+  }
+}
 
 }

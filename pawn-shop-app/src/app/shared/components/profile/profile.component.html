@@ -53,14 +53,8 @@
           <span class="progress-text">{{ 'profile.uploadingImage' | translate }}</span>
         </div>
       </div>
-      
-      <!-- Add test button for debugging (remove in production) -->
-      <button type="button" *ngIf="showDebugInfo && currentProfilePicUrl" 
-              (click)="testImageUrl(currentProfilePicUrl!)"
-              class="btn btn-sm btn-info">
-        🧪 Test Image URL
-      </button>
     </div>
+    
   </div>
 
     <!-- Profile Form -->

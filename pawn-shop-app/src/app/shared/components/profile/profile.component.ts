@@ -249,36 +249,77 @@ export class ProfileComponent implements OnInit {
   }
 
     // Update handleSaveSuccess method
-  private handleSaveSuccess(response: any, profilePicUrl: string | null): void {
-    this.toastService.showSuccess(
-      'Profile Saved!',
-      response.message || 'Your profile has been successfully updated.'
-    );
+  // private handleSaveSuccess(response: any, profilePicUrl: string | null): void {
+  //   this.toastService.showSuccess(
+  //     'Profile Saved!',
+  //     response.message || 'Your profile has been successfully updated.'
+  //   );
     
-    console.log('✅ Profile saved successfully:', response);
-    console.log('🖼️ Profile pic from response:', response.data?.profilePic);
+  //   console.log('✅ Profile saved successfully:', response);
+  //   console.log('🖼️ Profile pic from response:', response.data?.profilePic);
     
-    // Reset states first
-    this.selectedFile = null;
-    this.isEditing = false;
-    this.isLoading = false;
-    this.isUploadingImage = false;
+  //   // Reset states first
+  //   this.selectedFile = null;
+  //   this.isEditing = false;
+  //   this.isLoading = false;
+  //   this.isUploadingImage = false;
     
-    // Mark form as pristine
-    this.profileForm.markAsPristine();
+  //   // Mark form as pristine
+  //   this.profileForm.markAsPristine();
     
-    // 🔥 IMPORTANT: Update the current profile pic URL from the backend response
-    if (response.data && response.data.profilePic) {
-      this.currentProfilePicUrl = this.profileService.constructImageUrl(response.data.profilePic);
-      this.previewUrl = this.currentProfilePicUrl;
-      console.log('🎯 Updated profile pic URL from response:', this.currentProfilePicUrl);
+  //   // 🔥 IMPORTANT: Update the current profile pic URL from the backend response
+  //   if (response.data && response.data.profilePic) {
+  //     this.currentProfilePicUrl = this.profileService.constructImageUrl(response.data.profilePic);
+  //     this.previewUrl = this.currentProfilePicUrl;
+  //     console.log('🎯 Updated profile pic URL from response:', this.currentProfilePicUrl);
+  //   }
+    
+  //   // Reload profile to ensure everything is in sync
+  //   setTimeout(() => {
+  //     this.loadProfile();
+  //   }, 500); // Small delay to ensure backend has processed
+  // }
+
+  private async handleSaveSuccess(response: any, profilePicUrl: string | null): Promise<void> {
+  this.toastService.showSuccess(
+    'Profile Saved!',
+    response.message || 'Your profile has been successfully updated.'
+  );
+  
+  console.log('✅ Profile saved successfully:', response);
+  
+  // Reset states first
+  this.selectedFile = null;
+  this.isEditing = false;
+  this.isLoading = false;
+  this.isUploadingImage = false;
+  
+  // Mark form as pristine
+  this.profileForm.markAsPristine();
+  
+  // 🔥 IMPORTANT: If we got a new profilePic filename from the response, get its S3 URL
+  if (response.data && response.data.profilePic) {
+    console.log('🔄 Getting S3 URL for saved profile pic:', response.data.profilePic);
+    try {
+      const s3Url = await this.profileService.constructImageUrlAsync(response.data.profilePic);
+      if (s3Url) {
+        this.currentProfilePicUrl = s3Url;
+        this.previewUrl = s3Url;
+        console.log('✅ Updated URLs from save response:', {
+          currentProfilePicUrl: this.currentProfilePicUrl,
+          previewUrl: this.previewUrl
+        });
+      }
+    } catch (error) {
+      console.error('❌ Failed to get S3 URL after save:', error);
     }
-    
-    // Reload profile to ensure everything is in sync
-    setTimeout(() => {
-      this.loadProfile();
-    }, 500); // Small delay to ensure backend has processed
   }
+  
+  // Reload profile to ensure everything is in sync
+  setTimeout(() => {
+    this.loadProfile();
+  }, 500);
+}
 
   // private handleSaveSuccess(response: any, profilePicUrl: string | null): void {
   //   this.toastService.showSuccess(
@@ -348,7 +389,7 @@ export class ProfileComponent implements OnInit {
   console.log('🔍 Loading profile for userid:', userid);
   
   this.profileService.getProfile(userid).subscribe({
-    next: (profile) => {
+    next: async (profile) => {
       console.log('✅ Received profile data:', profile);
       console.log('🖼️ Raw profile pic value:', profile.profilePic);
       
@@ -361,11 +402,39 @@ export class ProfileComponent implements OnInit {
         userid: profile.userid || userid
       });
       
-      // 🔥 FIX: Use the constructImageUrl method
-      this.currentProfilePicUrl = this.profileService.constructImageUrl(this.profileForm.value.profilePicUrl);
-      this.previewUrl = this.currentProfilePicUrl;
+      // 🔥 FIXED: Get actual S3 URL from backend
+      if (profile.profilePic && typeof profile.profilePic === 'string' && profile.profilePic.trim() !== '') {
+        console.log('📋 Step 1 - ProfilePic exists, getting S3 URL from backend...');
+        
+        try {
+          // Get the actual S3 URL from your backend
+          const s3Url = await this.profileService.constructImageUrlAsync(profile.profilePic);
+          console.log('📋 Step 2 - Got S3 URL:', s3Url);
+          
+          this.currentProfilePicUrl = s3Url;
+          this.previewUrl = s3Url;
+          
+          console.log('📋 Step 3 - URLs set successfully:', {
+            currentProfilePicUrl: this.currentProfilePicUrl,
+            previewUrl: this.previewUrl
+          });
+          
+        } catch (error) {
+          console.error('❌ Failed to get S3 URL:', error);
+          this.currentProfilePicUrl = null;
+          this.previewUrl = null;
+        }
+      } else {
+        console.log('📋 ProfilePic is null or empty');
+        this.currentProfilePicUrl = null;
+        this.previewUrl = null;
+      }
       
-      console.log('🎯 Final image URL set:', this.currentProfilePicUrl);
+      console.log('🎯 FINAL URLs after loadProfile:', {
+        currentProfilePicUrl: this.currentProfilePicUrl,
+        previewUrl: this.previewUrl,
+        willShowDefaultAvatar: !this.currentProfilePicUrl
+      });
 
       if (!this.isEditing) {
         this.toastService.showSuccess(
@@ -383,6 +452,8 @@ export class ProfileComponent implements OnInit {
       console.error('❌ Error loading profile:', error);
       
       if (error.message && error.message.includes('Profile not found')) {
+        console.log('📝 No profile found - setting up for new profile creation');
+        
         this.profileForm.patchValue({
           userid: userid,
           name: '',
@@ -513,13 +584,19 @@ export class ProfileComponent implements OnInit {
   }
 
   getProfilePicUrl(): string {
-  const imageUrl = this.previewUrl || this.currentProfilePicUrl;
-  console.log('🖼️ Getting profile pic URL:', {
-    previewUrl: this.previewUrl,
-    currentProfilePicUrl: this.currentProfilePicUrl,
-    finalUrl: imageUrl || '/assets/images/profile/defaultAvatar.png'
-  });
-  return imageUrl || '/assets/images/profile/defaultAvatar.png';
+    const imageUrl = this.previewUrl || this.currentProfilePicUrl;
+    console.log('🖼️ Getting profile pic URL:', {
+      previewUrl: this.previewUrl,
+      currentProfilePicUrl: this.currentProfilePicUrl,
+      finalUrl: imageUrl || '/assets/images/profile/defaultAvatar.png',
+      willUseDefault: !imageUrl
+    });
+    
+    if (!imageUrl) {
+      console.log('⚠️ No image URL available, using default avatar');
+    }
+    
+    return imageUrl || '/assets/images/profile/defaultAvatar.png';
   }
 
     // Add debugging method to check image loading
@@ -554,26 +631,4 @@ export class ProfileComponent implements OnInit {
   });
 }
 
-  // Add method to test image URL directly
-  testImageUrl(url: string): void {
-    console.log('🧪 Testing image URL:', url);
-    const img = new Image();
-    img.onload = () => console.log('✅ Image URL is valid');
-    img.onerror = () => console.error('❌ Image URL is invalid');
-    img.src = url;
-  }
-
-    // Add method to log all image-related URLs
-  debugImageUrls(): void {
-    console.log('🐛 IMAGE DEBUG INFO:');
-    console.log('- previewUrl:', this.previewUrl);
-    console.log('- currentProfilePicUrl:', this.currentProfilePicUrl);
-    console.log('- getProfilePicUrl():', this.getProfilePicUrl());
-    console.log('- Base image URL:', this.profileService.getBaseImageUrl());
-    console.log('- Environment API base:', environment.apiBaseUrl);
-    
-    if (this.currentProfilePicUrl) {
-      this.testImageUrl(this.currentProfilePicUrl);
-    }
-  }
 }
