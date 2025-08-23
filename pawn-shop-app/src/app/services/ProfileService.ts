@@ -35,26 +35,21 @@ export class ProfileService {
       params: {userid: userid.toString()}
     }).pipe(
       map(response => {
-        console.log('📥 Raw API Response:', response);
         
         // Check if the API call was successful based on your backend structure
         if (response.success === 1) {
           // Check if we have data
           if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-            console.log('✅ Profile found:', response.data[0]);
             return response.data[0]; // Return the first profile object
           } else if (response.data && !Array.isArray(response.data)) {
             // Handle case where data is a single object, not array
-            console.log('✅ Profile found (single object):', response.data);
             return response.data;
           } else {
             // Success response but no data found
-            console.warn('⚠️ API success but no profile data found');
             throw new Error('No profile data found for this user');
           }
         } else if (response.success === 0) {
-          // API returned failure with your backend structure
-          console.error('❌ API returned failure:', response);
+          // API returned failure with your backend structur
           
           // Handle specific error cases
           if (response.code === 500 && response.message === "Profile Data Not Found") {
@@ -64,12 +59,10 @@ export class ProfileService {
           }
         } else {
           // Unexpected response structure
-          console.error('❌ Unexpected API response structure:', response);
           throw new Error('Unexpected response from server');
         }
       }),
       catchError(error => {
-        console.error('💥 Error in getProfile pipe:', error);
         
         // If it's already an Error object, just pass it through
         if (error instanceof Error) {
@@ -122,6 +115,7 @@ export class ProfileService {
     };
     return this.http.post<PresignedUrlResponse>(`${this.apiUrl}/presigned-url`, request);
   }
+  
 
   // Upload file directly to S3 using presigned URL
   uploadToS3(presignedUrl: string, file: File): Observable<any> {
@@ -231,17 +225,14 @@ export class ProfileService {
     formData.append('userId', userid.toString());
     formData.append('userName', userName);
     
-    console.log('🌐 Calling /upload-image endpoint...');
-    console.log('📤 FormData contents:', {
-      file: file.name,
-      userId: userid,
-      userName: userName
-    });
+    // console.log('📤 FormData contents:', {
+    //   file: file.name,
+    //   userId: userid,
+    //   userName: userName
+    // });
     
     return this.http.post<any>(`${this.apiUrl}/upload-image`, formData).pipe(
-      map(response => {
-        console.log('📥 Upload image response:', response);
-        
+      map(response => {        
         if (response && response.success === 1) {
           return response;
         } else {
@@ -249,7 +240,6 @@ export class ProfileService {
         }
       }),
       catchError(error => {
-        console.error('❌ Error uploading image:', error);
         
         let errorMessage = 'Failed to upload image';
         if (error.status === 413) {
@@ -269,12 +259,9 @@ export class ProfileService {
 
   // Upload profile data - WITH ERROR HANDLING
   uploadProfileData(profileData: any): Observable<any> {
-    console.log('🌐 Calling /upload-profile endpoint...');
-    console.log('📤 Profile data:', profileData);
     
     return this.http.post<any>(`${this.apiUrl}/upload-profile`, profileData).pipe(
       map(response => {
-        console.log('📥 Upload profile response:', response);
         
         if (response && (response.success === 1 || response.success === true)) {
           return response;
@@ -283,7 +270,6 @@ export class ProfileService {
         }
       }),
       catchError(error => {
-        console.error('❌ Error saving profile:', error);
         
         let errorMessage = 'Failed to save profile';
         if (error.status === 400) {
@@ -302,12 +288,9 @@ export class ProfileService {
   }
 
   // Get base image URL
-  getBaseImageUrl(): string {
-      console.log('🌐 Environment API base URL:', environment.apiBaseUrl);
-      
+  getBaseImageUrl(): string {      
       // Option 1: If your backend serves images at /auth/profile/images
       const imageBaseUrl = `${environment.apiBaseUrl}/auth/profile/images`;
-      console.log('🌐 Constructed image base URL:', imageBaseUrl);
       return imageBaseUrl;
   }
 
@@ -329,47 +312,38 @@ export class ProfileService {
   }
 
   getImageUrl(fileName: string): Observable<string> {
-    console.log('🌐 Getting S3 URL for filename:', fileName);
     return this.http.get<string>(`${this.apiUrl}/file/${encodeURIComponent(fileName)}`, {
       responseType: 'text' as 'json'
     }).pipe(
       map(url => {
-        console.log('✅ Received S3 URL from backend:', url);
         return url;
       }),
       catchError(error => {
-        console.error('❌ Error getting S3 URL:', error);
         return throwError(() => new Error('Failed to get image URL'));
       })
     );
   }
 
   async constructImageUrlAsync(profilePic: string | null): Promise<string | null> {
-  console.log('🏗️ constructImageUrlAsync called with:', profilePic);
   
-  if (!profilePic || profilePic.trim() === '') {
-    console.log('🏗️ No profilePic provided, returning null');
-    return null;
+    if (!profilePic || profilePic.trim() === '') {
+      return null;
+    }
+    
+    const trimmedProfilePic = profilePic.trim();
+    
+    // If it's already a full URL (starts with http), return as is
+    if (trimmedProfilePic.startsWith('http://') || trimmedProfilePic.startsWith('https://')) {
+      return trimmedProfilePic;
+    }
+    
+    try {
+      // Get the actual S3 URL from your backend
+      const s3Url = await firstValueFrom(this.getImageUrl(trimmedProfilePic));
+      return s3Url;
+    } catch (error) {
+      return null;
+    }
   }
-  
-  const trimmedProfilePic = profilePic.trim();
-  
-  // If it's already a full URL (starts with http), return as is
-  if (trimmedProfilePic.startsWith('http://') || trimmedProfilePic.startsWith('https://')) {
-    console.log('✅ Full URL detected:', trimmedProfilePic);
-    return trimmedProfilePic;
-  }
-  
-  try {
-    // Get the actual S3 URL from your backend
-    console.log('🌐 Fetching S3 URL from backend for:', trimmedProfilePic);
-    const s3Url = await firstValueFrom(this.getImageUrl(trimmedProfilePic));
-    console.log('🔗 Got S3 URL from backend:', s3Url);
-    return s3Url;
-  } catch (error) {
-    console.error('❌ Failed to get S3 URL:', error);
-    return null;
-  }
-}
 
 }

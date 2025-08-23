@@ -109,11 +109,6 @@ export class ProfileComponent implements OnInit {
   }
 
   onSubmit(): void {
-    console.log('🚀 Form submission started');
-    console.log('📝 Form valid:', this.profileForm.valid);
-    console.log('⏳ isLoading:', this.isLoading);
-    console.log('📤 isUploadingImage:', this.isUploadingImage);
-    console.log('📋 Form values:', this.profileForm.value);
 
     if (this.profileForm.valid && !this.isLoading && !this.isUploadingImage) {
       this.isLoading = true;
@@ -124,14 +119,11 @@ export class ProfileComponent implements OnInit {
       }
       
       if (this.selectedFile) {
-        console.log('📸 File selected, starting upload process...');
         this.uploadImageThenSaveProfile();
       } else {
-        console.log('💾 No file selected, saving profile data only...');
         this.saveProfileData(this.currentProfilePicUrl);
       }
     } else {
-      console.log('❌ Form validation failed or already processing');
       this.markFormGroupTouched();
       this.toastService.showWarning(
         'Form Invalid',
@@ -142,7 +134,6 @@ export class ProfileComponent implements OnInit {
 
   private async uploadImageThenSaveProfile(): Promise<void> {
     try {
-      console.log('🔄 Starting image upload process...');
       this.isUploadingImage = true;
       
       this.toastService.showInfo(
@@ -152,7 +143,6 @@ export class ProfileComponent implements OnInit {
       
       const imageUrl = await this.uploadImageOnly();
       
-      console.log('✅ Image uploaded successfully:', imageUrl);
       this.toastService.showSuccess(
         'Image Uploaded!',
         'Image uploaded successfully. Now saving your profile...'
@@ -161,7 +151,6 @@ export class ProfileComponent implements OnInit {
       this.saveProfileData(imageUrl);
       
     } catch (error) {
-      console.error('💥 Error in upload process:', error);
       this.handleUploadError(error);
     }
   }
@@ -177,46 +166,36 @@ export class ProfileComponent implements OnInit {
         throw new Error(validation.error || 'File validation failed');
       }
 
-      console.log('🔍 About to call profileService.uploadImageOnly...');
-
       const imageName = await new Promise<string>((resolve, reject) => {
         const formData = {
           file: this.selectedFile!,
           userid: this.profileForm.value.userid,
           name: this.profileForm.value.name || 'Unknown User'
         };
-        
-        console.log('📤 Upload params:', formData);
-        
+                
         this.profileService.uploadImageOnly(
           formData.file,
           formData.userid,
           formData.name
         ).subscribe({
           next: (res: any) => {
-            console.log('✅ Service returned ApiResponse:', res);
 
             if (res && res.success === 1 && res.data) {
               const fileName = res.data;
-              console.log('📁 Extracted fileName:', fileName);
               resolve(fileName);
             } else {
-              console.error('❌ Invalid response structure:', res);
               reject(new Error('Upload response missing data field or failed'));
             }
           },
           error: (error) => {
-            console.error('❌ Service error:', error);
             reject(error);
           }
         });
       });
 
-      console.log('🎯 Final imageName to use:', imageName);
       return imageName;
       
     } catch (error) {
-      console.error('💥 Error in uploadImageOnly:', error);
       throw error;
     } finally {
       this.isUploadingImage = false;
@@ -234,15 +213,11 @@ export class ProfileComponent implements OnInit {
       userid: this.profileForm.value.userid || 1
     };
 
-    console.log('📤 Sending profile data to /upload-profile:', profileData);
-
     this.profileService.uploadProfileData(profileData).subscribe({
       next: (response) => {
-        console.log('✅ Profile save successful:', response);
         this.handleSaveSuccess(response, profilePicUrl);
       },
       error: (error) => {
-        console.error('❌ Profile save error:', error);
         this.handleSaveError(error);
       }
     });
@@ -285,9 +260,7 @@ export class ProfileComponent implements OnInit {
     'Profile Saved!',
     response.message || 'Your profile has been successfully updated.'
   );
-  
-  console.log('✅ Profile saved successfully:', response);
-  
+    
   // Reset states first
   this.selectedFile = null;
   this.isEditing = false;
@@ -299,19 +272,13 @@ export class ProfileComponent implements OnInit {
   
   // 🔥 IMPORTANT: If we got a new profilePic filename from the response, get its S3 URL
   if (response.data && response.data.profilePic) {
-    console.log('🔄 Getting S3 URL for saved profile pic:', response.data.profilePic);
     try {
       const s3Url = await this.profileService.constructImageUrlAsync(response.data.profilePic);
       if (s3Url) {
         this.currentProfilePicUrl = s3Url;
         this.previewUrl = s3Url;
-        console.log('✅ Updated URLs from save response:', {
-          currentProfilePicUrl: this.currentProfilePicUrl,
-          previewUrl: this.previewUrl
-        });
       }
     } catch (error) {
-      console.error('❌ Failed to get S3 URL after save:', error);
     }
   }
   
@@ -354,9 +321,7 @@ export class ProfileComponent implements OnInit {
       errorMsg = error.message;
     }
     
-    this.toastService.showError('Save Failed!', errorMsg);
-    console.error('❌ Error saving profile:', error);
-    
+    this.toastService.showError('Save Failed!', errorMsg);    
     // Reset loading states
     this.isLoading = false;
     this.isUploadingImage = false;
@@ -386,12 +351,9 @@ export class ProfileComponent implements OnInit {
 
   loadProfile(): void {
   const userid = 1;
-  console.log('🔍 Loading profile for userid:', userid);
   
   this.profileService.getProfile(userid).subscribe({
     next: async (profile) => {
-      console.log('✅ Received profile data:', profile);
-      console.log('🖼️ Raw profile pic value:', profile.profilePic);
       
       this.profileForm.patchValue({
         name: profile.name || '',
@@ -403,38 +365,28 @@ export class ProfileComponent implements OnInit {
       });
       
       // 🔥 FIXED: Get actual S3 URL from backend
-      if (profile.profilePic && typeof profile.profilePic === 'string' && profile.profilePic.trim() !== '') {
-        console.log('📋 Step 1 - ProfilePic exists, getting S3 URL from backend...');
-        
+      if (profile.profilePic && typeof profile.profilePic === 'string' && profile.profilePic.trim() !== '') {        
         try {
           // Get the actual S3 URL from your backend
-          const s3Url = await this.profileService.constructImageUrlAsync(profile.profilePic);
-          console.log('📋 Step 2 - Got S3 URL:', s3Url);
-          
+          const s3Url = await this.profileService.constructImageUrlAsync(profile.profilePic);          
           this.currentProfilePicUrl = s3Url;
           this.previewUrl = s3Url;
           
-          console.log('📋 Step 3 - URLs set successfully:', {
-            currentProfilePicUrl: this.currentProfilePicUrl,
-            previewUrl: this.previewUrl
-          });
           
         } catch (error) {
-          console.error('❌ Failed to get S3 URL:', error);
           this.currentProfilePicUrl = null;
           this.previewUrl = null;
         }
       } else {
-        console.log('📋 ProfilePic is null or empty');
         this.currentProfilePicUrl = null;
         this.previewUrl = null;
       }
       
-      console.log('🎯 FINAL URLs after loadProfile:', {
-        currentProfilePicUrl: this.currentProfilePicUrl,
-        previewUrl: this.previewUrl,
-        willShowDefaultAvatar: !this.currentProfilePicUrl
-      });
+      // console.log('🎯 FINAL URLs after loadProfile:', {
+      //   currentProfilePicUrl: this.currentProfilePicUrl,
+      //   previewUrl: this.previewUrl,
+      //   willShowDefaultAvatar: !this.currentProfilePicUrl
+      // });
 
       if (!this.isEditing) {
         this.toastService.showSuccess(
@@ -449,10 +401,8 @@ export class ProfileComponent implements OnInit {
       };
     },
     error: (error) => {
-      console.error('❌ Error loading profile:', error);
       
       if (error.message && error.message.includes('Profile not found')) {
-        console.log('📝 No profile found - setting up for new profile creation');
         
         this.profileForm.patchValue({
           userid: userid,
@@ -585,24 +535,14 @@ export class ProfileComponent implements OnInit {
 
   getProfilePicUrl(): string {
     const imageUrl = this.previewUrl || this.currentProfilePicUrl;
-    console.log('🖼️ Getting profile pic URL:', {
-      previewUrl: this.previewUrl,
-      currentProfilePicUrl: this.currentProfilePicUrl,
-      finalUrl: imageUrl || '/assets/images/profile/defaultAvatar.png',
-      willUseDefault: !imageUrl
-    });
-    
     if (!imageUrl) {
-      console.log('⚠️ No image URL available, using default avatar');
     }
-    
     return imageUrl || '/assets/images/profile/defaultAvatar.png';
   }
 
     // Add debugging method to check image loading
   onImageLoad(event: Event): void {
     const imgElement = event.target as HTMLImageElement;
-    console.log('✅ Image loaded successfully:', imgElement.src);
   }
 
 
@@ -621,14 +561,5 @@ export class ProfileComponent implements OnInit {
     return CustomValidators.getPhoneErrorMessage(phoneControl?.errors || null);
   }
   
-  debugButtonState(): void {
-  console.log('🔍 Button Debug:', {
-    formValid: this.profileForm.valid,
-    isLoading: this.isLoading,
-    isUploadingImage: this.isUploadingImage,
-    formErrors: this.profileForm.errors,
-    formValue: this.profileForm.value
-  });
-}
 
 }
