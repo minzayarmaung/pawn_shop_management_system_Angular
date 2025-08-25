@@ -4,6 +4,8 @@ import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { PawnItemsComponent } from './features/pawn-items/pawn-items.component';
 import { ConfigurationComponent } from './features/configuration/configuration.component';
 import { ProfileComponent } from './shared/components/profile/profile.component';
+import { LoginComponent } from './shared/components/login/login.component';
+import { SignupComponent } from './shared/components/sign-up/sign-up.component';
 
 export const routes: Routes = [
   {
@@ -16,5 +18,13 @@ export const routes: Routes = [
       { path: 'profile' , component : ProfileComponent }
     ]
   } ,
+  {
+    path:'login',
+    component:LoginComponent
+  } ,
+  {
+    path:'signup',
+    component: SignupComponent
+  }
 ];
 

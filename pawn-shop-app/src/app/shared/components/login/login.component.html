@@ -1,0 +1,88 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h2>Sign in to your account</h2>
+    </div>
+    
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input 
+          id="email" 
+          name="email" 
+          type="email" 
+          formControlName="email"
+          autocomplete="email" 
+          placeholder="Enter your email"
+          [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+        <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error-message">
+          <span *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</span>
+          <span *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-input">
+          <input 
+            id="password" 
+            name="password" 
+            [type]="showPassword ? 'text' : 'password'" 
+            formControlName="password"
+            autocomplete="current-password" 
+            placeholder="Enter your password"
+            [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          <button type="button" class="toggle-password" (click)="togglePassword()">
+            <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+        <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error-message">
+          <span *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</span>
+          <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+        </div>
+      </div>
+
+      <!-- Role Selection -->
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" formControlName="role" [class.error]="loginForm.get('role')?.invalid && loginForm.get('role')?.touched">
+          <option value="">Select Role</option>
+          <option value="admin">Admin</option>
+          <option value="staff">Staff</option>
+        </select>
+        <div *ngIf="loginForm.get('role')?.invalid && loginForm.get('role')?.touched" class="error-message">
+          <span *ngIf="loginForm.get('role')?.errors?.['required']">Role is required</span>
+        </div>
+      </div>
+
+      <!-- Forgot Password Link -->
+      <div class="forgot-password">
+        <a (click)="goToForgotPassword()" class="forgot-link">Forgot your password?</a>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-group">
+        <button type="submit" [disabled]="loginForm.invalid || isLoading" class="btn-primary">
+          <span *ngIf="isLoading" class="spinner"></span>
+          {{ isLoading ? 'Signing in...' : 'Sign In' }}
+        </button>
+      </div>
+
+      <!-- Google Login Button -->
+      <div class="form-group">
+        <button type="button" class="btn-google" (click)="continueWithGoogle()">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE3LjY0IDkuMjA0NTVDMTcuNjQgOC41NjY0NSAxNy41ODczIDcuOTUyNzMgMTcuNDkwOSA3LjM2MzY0SDlWMTAuODQ1SDE0LjEwNDVDMTMuNjIyNyAxMi45NTI3IDEyLjE1OTEgMTQuNjEzNiAxMC4yNTQ1IDE1LjY2OThWMTguMjc1OEgxNC4xODE4QzE2LjIxOTEgMTYuMzYzNiAxNy42NCA0LjMzMzY0IDQwLjI1NDUgMTMuMDAwOSA0NC4xODE4IDE1LjI2MzZIMTcuNjRaIiBmaWxsPSIjNDA3NUZEIi8+CjxwYXRoIGQ9Ik05IDExLjI1QzguNzI1IDExLjI1IDguNDc1IDExLjE3NSA4LjI1IDExLjA1VjYuOTVDOC40NzUgNi44MjUgOC43MjUgNi43NSA5IDYuNzVIMTAuMjc1VjkuNzVDMTAuMjc1IDEwLjY1IDkuOSAxMS4yNSA5IDExLjI1WiIgZmlsbD0iIzM0QTg1MyIvPgo8L3N2Zz4K" alt="Google" class="google-icon">
+          Continue with Google
+        </button>
+      </div>
+
+      <!-- Sign Up Link -->
+      <div class="signup-link">
+        <span>New user? </span>
+        <a (click)="goToSignup()" class="signup-text">Sign Up</a>
+      </div>
+    </form>
+  </div>
+</div>
