@@ -48,7 +48,7 @@ export class AuthService {
    * Register new user
    */
   signup(signupData: Signup): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(`${this.apiUrl}/signup`, signupData);
+    return this.http.post<ApiResponse>(`${this.apiUrl}/sign-up`, signupData);
   }
 
   /**

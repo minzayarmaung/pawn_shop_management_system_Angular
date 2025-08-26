@@ -17,7 +17,8 @@
 
     <!-- Step 1: Email Verification -->
     <form *ngIf="currentStep === 1" [formGroup]="emailForm" (ngSubmit)="sendOTP()" class="signup-form">
-      <div class="form-group">
+      <!-- Email Input (only show if OTP not sent) -->
+      <div *ngIf="!otpSent" class="form-group">
         <label for="email">Email address</label>
         <input 
           id="email" 
@@ -33,7 +34,8 @@
         </div>
       </div>
 
-      <div class="form-group">
+      <!-- Send OTP Button (only show if OTP not sent) -->
+      <div *ngIf="!otpSent" class="form-group">
         <button type="submit" [disabled]="emailForm.invalid || isSendingOTP" class="btn-primary">
           <span *ngIf="isSendingOTP" class="spinner"></span>
           {{ isSendingOTP ? 'Sending OTP...' : 'Send OTP' }}
@@ -63,6 +65,7 @@
         </div>
       </div>
 
+      <!-- Verify OTP Button (only show after OTP sent) -->
       <div *ngIf="otpSent" class="form-group">
         <button type="button" [disabled]="emailForm.get('otp')?.invalid || isVerifyingOTP" 
                 (click)="verifyOTP()" class="btn-primary">

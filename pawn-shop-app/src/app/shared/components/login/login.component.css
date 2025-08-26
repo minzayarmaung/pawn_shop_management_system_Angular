@@ -3,8 +3,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 30%, #764ba2 90%);
-  padding: 20px;  padding: 20px;
+  background: #ffffff;
+  padding: 20px;
 }
 
 .login-card {
@@ -75,6 +75,12 @@
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
+}
+
+.password-input input {
+  width: 100%;
+  padding-right: 50px;
 }
 
 .toggle-password {
