@@ -1,6 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 import { Login } from '../../models/login.model';
 import { Signup } from '../../models/signup.model';
 import { environment } from '../../shared/commons/api.config';
@@ -16,93 +18,140 @@ export interface ApiResponse<T = any> {
   message: string;
 }
 
+export interface LoginResponse {
+  user: any;
+  token: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private apiUrl = `${environment.apiBaseUrl}/auth/user`;
-  private http = inject(HttpClient);
+  private isBrowser: boolean;
 
-  /**
-   * Login user
-   */
-  login(loginData: Login): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(`${this.apiUrl}`, loginData);
+  private isLoggedInSubject = new BehaviorSubject<boolean>(false);
+  public isLoggedIn$ = this.isLoggedInSubject.asObservable();
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+
+    // initialize auth state only in browser
+    if (this.isBrowser) {
+      this.isLoggedInSubject.next(this.hasValidToken());
+    }
   }
 
   /**
-   * Send OTP to email for verification
+   * Safe localStorage get
    */
+  private getFromStorage(key: string): string | null {
+    return this.isBrowser ? localStorage.getItem(key) : null;
+  }
+
+  /**
+   * Safe localStorage set
+   */
+  private setToStorage(key: string, value: string): void {
+    if (this.isBrowser) {
+      localStorage.setItem(key, value);
+    }
+  }
+
+  /**
+   * Safe localStorage remove
+   */
+  private removeFromStorage(key: string): void {
+    if (this.isBrowser) {
+      localStorage.removeItem(key);
+    }
+  }
+
+  private hasValidToken(): boolean {
+    const token = this.getFromStorage('auth_token');
+    const user = this.getFromStorage('user');
+    return !!(token && user);
+  }
+
+  private checkAuthState(): void {
+    this.isLoggedInSubject.next(this.hasValidToken());
+  }
+
+  login(loginData: Login): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}/login`, loginData).pipe(
+      tap(response => {
+        if (response.success === 1 && response.data) {
+          this.setToStorage('auth_token', response.data.token);
+          this.setToStorage('user', JSON.stringify(response.data.user));
+          this.isLoggedInSubject.next(true);
+        }
+      })
+    );
+  }
+
   sendOTP(email: string): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${this.apiUrl}/send-otp`, { email });
   }
 
-  /**
-   * Verify OTP
-   */
   verifyOTP(email: string, otp: string): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${this.apiUrl}/verify-otp`, { email, otp });
   }
 
-  /**
-   * Register new user
-   */
   signup(signupData: Signup): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${this.apiUrl}/sign-up`, signupData);
   }
 
-  /**
-   * Send password reset email
-   */
   forgotPassword(email: string): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${this.apiUrl}/forgot-password`, { email });
   }
 
-  /**
-   * Reset password with token
-   */
   resetPassword(token: string, newPassword: string): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(`${this.apiUrl}/reset-password`, { 
-      token, 
-      newPassword 
-    });
+    return this.http.post<ApiResponse>(`${this.apiUrl}/reset-password`, { token, newPassword });
   }
 
-  /**
-   * Get user profile
-   */
   getProfile(): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.apiUrl}/profile/getProfileData`);
   }
 
-  /**
-   * Logout user
-   */
   logout(): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(`${this.apiUrl}/logout`, {});
+    return this.http.post<ApiResponse>(`${this.apiUrl}/logout`, {}).pipe(
+      tap(() => {
+        this.clearUserData();
+      })
+    );
   }
 
-  /**
-   * Check if user is authenticated
-   */
+  logoutLocal(): void {
+    this.clearUserData();
+    this.router.navigate(['/login']);
+  }
+
   isAuthenticated(): boolean {
-    const user = localStorage.getItem('user');
-    return !!user;
+    return this.hasValidToken();
   }
 
-  /**
-   * Get current user data
-   */
   getCurrentUser(): any {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = this.getFromStorage('user');
+      return user ? JSON.parse(user) : null;
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      this.clearUserData();
+      return null;
+    }
   }
 
-  /**
-   * Clear user data (for logout)
-   */
+  getToken(): string | null {
+    return this.getFromStorage('auth_token');
+  }
+
   clearUserData(): void {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    this.removeFromStorage('user');
+    this.removeFromStorage('auth_token');
+    this.isLoggedInSubject.next(false);
   }
 }

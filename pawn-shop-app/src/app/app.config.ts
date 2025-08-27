@@ -1,8 +1,9 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideClientHydration } from '@angular/platform-browser';
-import { provideHttpClient } from '@angular/common/http'; // ✅ import this
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
+import { authInterceptor } from './services/auth/auth.interceptor';
 
 import { routes } from './app.routes';
 import { TranslationService } from './services/TranslationService';
@@ -13,7 +14,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     //provideClientHydration(),
-    provideHttpClient() ,// ✅ make HttpClient available globally
+    provideHttpClient(
+       withInterceptors([authInterceptor])
+    ) ,
     TranslationService ,
     provideAnimations(),
     BrowserAnimationsModule
