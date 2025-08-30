@@ -77,6 +77,43 @@ export class AuthService {
     return !!(token && user);
   }
 
+  // Method to get token only if it's still valid
+  getValidToken(): string | null {
+    if (!this.isBrowser) return null;
+    
+    const tokenDataStr = localStorage.getItem('auth_token');
+    if (!tokenDataStr) return null;
+    
+    try {
+      const tokenData = JSON.parse(tokenDataStr);
+      const currentTime = new Date().getTime();
+      
+      // Check if token has expired
+      if (currentTime > tokenData.expiration) {
+        // Token expired, remove it
+        this.logout();
+        return null;
+      }
+      
+      return tokenData.token;
+    } catch (error) {
+      // Invalid token data format, remove it
+      this.logout();
+      return null;
+    }
+  }
+
+  private setTokenWithExpiration(token: string): void {
+  if (this.isBrowser) {
+    const expirationTime = new Date().getTime() + (12 * 60 * 60 * 1000); // 12 hours in milliseconds
+    const tokenData = {
+      token: token,
+      expiration: expirationTime
+    };
+    localStorage.setItem('auth_token', JSON.stringify(tokenData));
+  }
+}
+
   private checkAuthState(): void {
     this.isLoggedInSubject.next(this.hasValidToken());
   }
@@ -85,7 +122,8 @@ export class AuthService {
     return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}/login`, loginData).pipe(
       tap(response => {
         if (response.success === 1 && response.data) {
-          this.setToStorage('auth_token', response.data.token);
+          // Set token with 12-hour expiration
+          this.setTokenWithExpiration(response.data.token);
           this.setToStorage('user', JSON.stringify(response.data.user));
           this.isLoggedInSubject.next(true);
         }
@@ -142,6 +180,13 @@ export class AuthService {
       console.error('Error parsing user data:', error);
       this.clearUserData();
       return null;
+    }
+  }
+
+  refreshTokenExpiration(): void {
+    const currentToken = this.getValidToken();
+    if (currentToken) {
+      this.setTokenWithExpiration(currentToken);
     }
   }
 
