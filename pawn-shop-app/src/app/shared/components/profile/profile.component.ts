@@ -1,13 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../../services/pipes/translate.pipe';
 import { TranslationService } from '../../../services/TranslationService';
 import { ProfileService } from '../../../services/ProfileService';
 import { ToastService } from '../../../services/ToastService';
-import { firstValueFrom, Observable } from 'rxjs';
 import { CustomValidators } from '../../commons/validators/customerValidators';
-import { environment } from '../../commons/api.config';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -26,6 +25,8 @@ export class ProfileComponent implements OnInit {
   isUploadingImage = false;
   showDebugInfo = true;
 
+  private router = inject(Router);
+
   userInfo = {
     email: 'user@example.com' as string | null,
     usageTime: '2h 30m today' as string | null
@@ -40,7 +41,7 @@ export class ProfileComponent implements OnInit {
     private fb: FormBuilder,
     private profileService: ProfileService,
     private translationService: TranslationService,
-    private toastService: ToastService 
+    private toastService: ToastService ,
   ) {
     this.profileForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -350,86 +351,93 @@ export class ProfileComponent implements OnInit {
   }
 
   loadProfile(): void {
-  const userid = 1;
-  
-  this.profileService.getProfile(userid).subscribe({
-    next: async (profile) => {
-      
-      this.profileForm.patchValue({
-        name: profile.name || '',
-        nrc: profile.nrc || '',
-        phone: profile.phone || '',
-        dob: profile.dob || '',
-        gender: profile.gender || '',
-        userid: profile.userid || userid
-      });
-      
-      // 🔥 FIXED: Get actual S3 URL from backend
-      if (profile.profilePic && typeof profile.profilePic === 'string' && profile.profilePic.trim() !== '') {        
-        try {
-          // Get the actual S3 URL from your backend
-          const s3Url = await this.profileService.constructImageUrlAsync(profile.profilePic);          
-          this.currentProfilePicUrl = s3Url;
-          this.previewUrl = s3Url;
-          
-          
-        } catch (error) {
+    const userData = localStorage.getItem('user');
+    if(!userData){
+      this.toastService.showError('Error','No User Logged in.');
+      this.router.navigate(['/login']);
+      return;
+    }
+    const user = JSON.parse(userData);
+    const userid = user.userId;
+    
+    this.profileService.getProfile(userid).subscribe({
+      next: async (profile) => {
+        
+        this.profileForm.patchValue({
+          name: profile.name || '',
+          nrc: profile.nrc || '',
+          phone: profile.phone || '',
+          dob: profile.dob || '',
+          gender: profile.gender || '',
+          userid: profile.userid || userid
+        });
+        
+        // 🔥 FIXED: Get actual S3 URL from backend
+        if (profile.profilePic && typeof profile.profilePic === 'string' && profile.profilePic.trim() !== '') {        
+          try {
+            // Get the actual S3 URL from your backend
+            const s3Url = await this.profileService.constructImageUrlAsync(profile.profilePic);          
+            this.currentProfilePicUrl = s3Url;
+            this.previewUrl = s3Url;
+            
+            
+          } catch (error) {
+            this.currentProfilePicUrl = null;
+            this.previewUrl = null;
+          }
+        } else {
           this.currentProfilePicUrl = null;
           this.previewUrl = null;
         }
-      } else {
-        this.currentProfilePicUrl = null;
-        this.previewUrl = null;
-      }
-      
-      // console.log('🎯 FINAL URLs after loadProfile:', {
-      //   currentProfilePicUrl: this.currentProfilePicUrl,
-      //   previewUrl: this.previewUrl,
-      //   willShowDefaultAvatar: !this.currentProfilePicUrl
-      // });
+        
+        // console.log('🎯 FINAL URLs after loadProfile:', {
+        //   currentProfilePicUrl: this.currentProfilePicUrl,
+        //   previewUrl: this.previewUrl,
+        //   willShowDefaultAvatar: !this.currentProfilePicUrl
+        // });
 
-      if (!this.isEditing) {
-        this.toastService.showSuccess(
-          'Profile Loaded',
-          'Profile data loaded successfully.'
-        );
+        if (!this.isEditing) {
+          this.toastService.showSuccess(
+            'Profile Loaded',
+            'Profile data loaded successfully.'
+          );
+        }
+        
+        this.userInfo = {
+          email: profile.email || null,
+          usageTime: profile.usageTime || null
+        };
+      },
+      error: (error) => {
+        
+        if (error.message && error.message.includes('Profile not found')) {
+          
+          this.profileForm.patchValue({
+            userid: userid,
+            name: '',
+            nrc: '',
+            phone: '',
+            dob: '',
+            gender: ''
+          });
+          
+          this.toastService.showInfo(
+            'No Profile Found',
+            'Please fill in your profile information.'
+          );
+          
+          this.isEditing = true;
+          
+        } else {
+          this.toastService.showError(
+            'Load Failed',
+            error.message || 'Failed to load profile data. Using default data.'
+          );
+          this.loadMockProfile();
+        }
       }
-      
-      this.userInfo = {
-        email: profile.email || null,
-        usageTime: profile.usageTime || null
-      };
-    },
-    error: (error) => {
-      
-      if (error.message && error.message.includes('Profile not found')) {
-        
-        this.profileForm.patchValue({
-          userid: userid,
-          name: '',
-          nrc: '',
-          phone: '',
-          dob: '',
-          gender: ''
-        });
-        
-        this.toastService.showInfo(
-          'No Profile Found',
-          'Please fill in your profile information.'
-        );
-        
-        this.isEditing = true;
-        
-      } else {
-        this.toastService.showError(
-          'Load Failed',
-          error.message || 'Failed to load profile data. Using default data.'
-        );
-        this.loadMockProfile();
-      }
-    }
-  });
-}
+    });
+  }
 
   // loadProfile(): void {
   //   const userid = 1;

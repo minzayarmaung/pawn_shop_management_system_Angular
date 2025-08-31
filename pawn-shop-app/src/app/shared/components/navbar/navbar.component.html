@@ -28,7 +28,11 @@
             <img src="assets/images/language_icons/myanmar.png" alt="Myanmar flag" class="flag-icon" />
             မြန်မာစာ
           </a>
-        </div>
+        </div>  
+    </div>
+
+    <div class="welcome-text" *ngIf="username">
+        Welcome {{ username }}
     </div>
 
       <!-- Profile -->
@@ -43,7 +47,7 @@
         <div class="dropdown" *ngIf="isProfileDropdownOpen">
           <a routerLink="/profile" class="dropdown-item">Profile</a>
           <a routerLink="/settings" class="dropdown-item">Settings</a>
-          <a (click)="logout()" class="dropdown-item">Logout</a>
+          <a routerLink="/login" (click)="logout()" class="dropdown-item">Logout</a>
         </div>
       </div>
 
