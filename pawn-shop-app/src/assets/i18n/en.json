@@ -114,5 +114,18 @@
       "phoneRequired":"Phone is Required",
       "genderRequired":"Gender is Required"
     }
+  },
+  "dashboard":{
+    "overview": {
+      "totalAmount": "Total Amount",
+      "totalPawnItems": "Total Pawn Items",
+      "totalCustomers": "Total Customers",
+      "totalProfits": "Total Profits",
+      "itemsNearDue": "Items Near Due Date",
+      "overdueItems": "Overdue Items"
+    },
+    "graph":{
+      "monthlyProfit":"Montly Profit"
+    }
   }
 }

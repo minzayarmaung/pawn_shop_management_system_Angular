@@ -1,4 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { AuthService } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // Endpoints that don't need authentication
@@ -20,13 +22,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  // ✅ Safe localStorage check
-  let token: string | null = null;
-  if (typeof window !== 'undefined' && window.localStorage) {
-    token = localStorage.getItem('auth_token');
-  }
+  const authService = inject(AuthService);
+  const token = authService.getValidToken(); 
 
-  // Attach token if available
+  // Attach token if available and valid
   if (token) {
     const authReq = req.clone({
       setHeaders: {

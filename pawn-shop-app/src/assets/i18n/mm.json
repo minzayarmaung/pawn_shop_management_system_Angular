@@ -114,5 +114,18 @@
       "phoneRequired":"ဖုန်းနံပါတ် ထည့်ရန်လိုအပ်သည်။",
       "genderRequired":"ကျား / မ ရွေးချယ်ရန်လိုအပ်သည်။"
     }
+  },
+  "dashboard":{
+    "overview": {
+      "totalAmount": "စုစုပေါင်းငွေ",
+      "totalPawnItems": "စုစုပေါင်း အပေါင်ပစ္စည်း",
+      "totalCustomers": "စုစုပေါင်း စားသုံးသူများ",
+      "totalProfits": "စုစုပေါင်း အမြတ်ငွေ",
+      "itemsNearDue": "သတ်မှတ်ရက်နီးသည့် ပစ္စည်းများ",
+      "overdueItems": "သတ်မှတ်ရက်ကျော်လွန် ပစ္စည်းများ"
+    },
+    "graph":{
+      "monthlyProfit":"လစဉ်ဝင်ငွေ"
+    }
   }
 }

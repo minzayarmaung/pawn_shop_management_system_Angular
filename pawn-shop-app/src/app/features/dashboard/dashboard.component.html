@@ -8,7 +8,7 @@
     <div class="stat-card">
       <div class="stat-icon">💰</div>
       <div class="stat-content">
-        <h3 class="stat-title">Total Amount</h3>
+        <h3 class="stat-title">{{ 'dashboard.overview.totalAmount' | translate }}</h3>
         <p class="stat-value">{{ totalAmount | currency }}</p>
         <span class="stat-change positive">+12.5%</span>
       </div>
@@ -17,8 +17,8 @@
     <div class="stat-card">
       <div class="stat-icon">📦</div>
       <div class="stat-content">
-        <h3 class="stat-title">Items</h3>
-        <p class="stat-value">{{ totalItems }}</p>
+        <h3 class="stat-title">{{ 'dashboard.overview.totalPawnItems' | translate }}</h3>
+        <p class="stat-value">{{ totalPawnItems }}</p>
         <span class="stat-change positive">+8.2%</span>
       </div>
     </div>
@@ -26,7 +26,7 @@
     <div class="stat-card">
       <div class="stat-icon">👥</div>
       <div class="stat-content">
-        <h3 class="stat-title">Users</h3>
+        <h3 class="stat-title">{{ 'dashboard.overview.totalCustomers' | translate }}</h3>
         <p class="stat-value">{{ totalUsers }}</p>
         <span class="stat-change neutral">+2.1%</span>
       </div>
@@ -35,16 +35,35 @@
     <div class="stat-card">
       <div class="stat-icon">🧮</div>
       <div class="stat-content">
-        <h3 class="stat-title">Profits</h3>
+        <h3 class="stat-title">{{ 'dashboard.overview.totalProfits' | translate }}</h3>
         <p class="stat-value">{{ totalProfits | currency }}</p>
         <span class="stat-change positive">+15.8%</span>
       </div>
     </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-content">
+        <h3 class="stat-title">{{ 'dashboard.overview.itemsNearDue' | translate }}</h3>
+        <p class="stat-value">{{ totallItemsNearDue }}</p>
+        <span class="stat-change positive">+15.8%</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🔴</div>
+      <div class="stat-content">
+        <h3 class="stat-title">{{ 'dashboard.overview.overdueItems' | translate }}</h3>
+        <p class="stat-value">{{ totalOverdueItems }}</p>
+        <span class="stat-change positive">+15.8%</span>
+      </div>
+    </div>
+
   </div>
 
   <div class="chart-section">
     <div class="chart-header">
-      <h3 class="chart-title">Monthly Profits</h3>
+      <h3 class="chart-title">{{ 'dashboard.graph.monthlyProfit' | translate}}</h3>
       <div class="chart-legend">
         <span class="legend-item">
           <span class="legend-color"></span>
@@ -83,7 +102,7 @@
     <div class="quick-stats">
       <div class="quick-stat-item">
         <span class="quick-stat-label">Average Deal</span>
-        <span class="quick-stat-value">{{ (totalAmount / totalItems) | currency }}</span>
+        <span class="quick-stat-value">{{ (totalAmount / totalPawnItems) | currency }}</span>
       </div>
       <div class="quick-stat-item">
         <span class="quick-stat-label">Profit Margin</span>

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { TranslatePipe } from '../../services/pipes/translate.pipe';
 
 interface ChartDataPoint {
   label: string;
@@ -9,15 +10,17 @@ interface ChartDataPoint {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule , TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
   totalAmount = 125000;
-  totalItems = 320;
+  totalPawnItems = 320;
   totalUsers = 58;
   totalProfits = 23000;
+  totallItemsNearDue = 20;
+  totalOverdueItems = 12;
 
   chartData: ChartDataPoint[] = [
     { label: 'Jan', value: 3000 },

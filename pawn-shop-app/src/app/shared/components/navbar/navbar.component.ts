@@ -13,8 +13,9 @@ import { RouterLinkActive } from "@angular/router";
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-isProfileDropdownOpen = false;
+  isProfileDropdownOpen = false;
   isLanguageDropdownOpen = false;
+  isMobileMenuOpen = false;
   currentLanguage = 'en';
   private subscription?: Subscription;
 
@@ -30,14 +31,21 @@ isProfileDropdownOpen = false;
     this.subscription?.unsubscribe();
   }
 
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    console.log('Mobile menu toggled:', this.isMobileMenuOpen);
+    this.isProfileDropdownOpen = false;
+    this.isLanguageDropdownOpen = false;
+  }
+
   toggleProfileDropdown(): void {
     this.isProfileDropdownOpen = !this.isProfileDropdownOpen;
-    this.isLanguageDropdownOpen = false; // close other dropdown
+    this.isLanguageDropdownOpen = false;
   }
 
   toggleLanguageDropdown(): void {
     this.isLanguageDropdownOpen = !this.isLanguageDropdownOpen;
-    this.isProfileDropdownOpen = false; // close other dropdown
+    this.isProfileDropdownOpen = false;
   }
 
   async changeLanguage(language: string): Promise<void> {
