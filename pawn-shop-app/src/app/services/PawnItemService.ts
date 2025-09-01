@@ -28,6 +28,7 @@ export class PawnItemService {
   }
 
   deletePawnItem(id: string): Observable<ApiResponse<any>> {
+    console.log(id);
   return this.http.post<ApiResponse<any>>(
     this.baseUrl + '/delete-pawn-item',
     null,

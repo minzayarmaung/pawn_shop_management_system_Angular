@@ -619,13 +619,13 @@ loadItems() {
 }
 
 deleteItem(item: PawnItem): void {
-  if (confirm(`Are you sure you want to mark pawn item ${item.id} as inactive?`)) {
-    this.pawnItemService.deletePawnItem(item.id)
+  if (confirm(`Are you sure you want to mark pawn item ${item.pawnId} as inactive?`)) {
+    this.pawnItemService.deletePawnItem(item.pawnId)
       .subscribe({
         next: (res) => {
           if (res.success === 1) {
             // Remove it from list without page reload
-            this.pawnItems = this.pawnItems.filter(p => p.id !== item.id);
+            this.pawnItems = this.pawnItems.filter(p => p.pawnId !== item.pawnId);
             this.applyFilters();
             alert('Item marked as inactive successfully');
             this.loadItems();
