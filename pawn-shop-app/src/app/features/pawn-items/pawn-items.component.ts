@@ -663,10 +663,16 @@ deleteItem(item: PawnItem): void {
   }
 
   onPawnDateChange(): void {
-    const pawnDate = new Date(this.formData.pawnDate);
+  const pawnDateValue = this.pawnForm.get('pawnDate')?.value;
+
+  if (pawnDateValue) {
+    const pawnDate = new Date(pawnDateValue);
     pawnDate.setDate(pawnDate.getDate() + 30);
-    this.formData.dueDate = pawnDate.toISOString().split('T')[0];
+    const dueDateStr = pawnDate.toISOString().split('T')[0];
+    this.pawnForm.patchValue({ dueDate: dueDateStr });
   }
+}
+
 
   populateForm(data: any): void {
   // First, set the category to trigger dynamic field creation

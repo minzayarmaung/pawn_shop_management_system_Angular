@@ -105,7 +105,7 @@ export class AuthService {
 
   private setTokenWithExpiration(token: string): void {
   if (this.isBrowser) {
-    const expirationTime = new Date().getTime() + (12 * 60 * 60 * 1000); // 12 hours in milliseconds
+    const expirationTime = new Date().getTime() + (12 * 60 * 60 * 1000); 
     const tokenData = {
       token: token,
       expiration: expirationTime
