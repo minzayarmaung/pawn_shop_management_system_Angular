@@ -724,4 +724,9 @@ deleteItem(item: PawnItem): void {
     return this.sortBy === 'CheckedOutItems' || this.selectedCategory === 'CheckedOutItems';
   }
 
+  checkOutItem(data: any) {
+  console.log(data);
+  
+  }
+
 }

@@ -368,6 +368,14 @@
   <div class="modal-footer">
   <!-- View Mode: Only Cancel Button -->
   <ng-container *ngIf="isViewMode">
+
+    <button 
+      type="button" 
+      class="btn-primary"
+      (click)="checkOutItem(pawnForm.value)">
+      Check Out Item
+    </button>
+
     <button 
       type="button" 
       class="btn-cancel"
