@@ -724,9 +724,68 @@ deleteItem(item: PawnItem): void {
     return this.sortBy === 'CheckedOutItems' || this.selectedCategory === 'CheckedOutItems';
   }
 
-  checkOutItem(data: any) {
-  console.log(data);
-  
+    checkOutItem(data: any) {
+      const confirmed = confirm("Are you sure you want to check out this item?");
+      if(confirmed){
+        if(this.pawnForm.valid){
+        this.isLoading = true;
+        const formValues = this.pawnForm.value as PawnItem;
+
+        const payLoad = {
+          customerId: formValues.customerId,
+          customerName: formValues.customerName,
+          customerPhone: formValues.customerPhone,
+          customerNrc: formValues.customerNrc,
+          customerAddress: formValues.customerAddress,
+          category: formValues.category,
+          amount: formValues.amount,
+          pawnId:formValues.pawnId,
+          pawnDate: formValues.pawnDate,
+          dueDate: formValues.dueDate,
+          voucherCode: formValues.voucherCode,
+          description: formValues.description || '',
+          details: {} as Record<string, any>
+        }
+        this.getDynamicColumns(formValues.category).forEach(col => {
+          payLoad.details[col.key] = formValues[col.key];
+        });
+
+        this.pawnItemService.checkOutPawnItem(payLoad).subscribe({
+          next: (response: any) => {
+            this.isLoading = false;
+            this.toastService.showSuccess(
+              'Success!',
+              response.message || 'Pawn Item Checked Out Successfully!',
+              response.data
+            );
+
+            this.loadItems();
+            this.closeModal();
+            this.isLoading = false;
+            this.resetForm();
+          },
+          error: (error: any) => {
+            this.isLoading = false;
+            let errorMsg = 'An Unexpected Error Occurred';
+            if(error.error?.message){
+              errorMsg = error.error.message;
+            } else if (error.message){
+              errorMsg = error.message;
+            }
+
+            this.toastService.showError(
+              'Error!',
+              errorMsg
+            );
+          }
+        })
+
+        } else {
+        this.markFormGroupTouched(this.pawnForm);
+      }
+    } else {
+      this.closeModal();
+    }
   }
 
 }

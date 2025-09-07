@@ -16,6 +16,10 @@ export class PawnItemService {
     return this.http.post(this.baseUrl , payload);
   }
 
+  checkOutPawnItem(payload: any): Observable<any>{
+    return this.http.post(this.baseUrl + '/check-Out-Item' , payload);
+  }
+
   updatePawnItem(payload: any): Observable<any> {
     return this.http.post(this.baseUrl + '/update-pawn-item', payload);
   }
