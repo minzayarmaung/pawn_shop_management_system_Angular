@@ -127,5 +127,10 @@
     "graph":{
       "monthlyProfit":"လစဉ်ဝင်ငွေ"
     }
+  },
+  "buttons":{
+    "general":{
+      "checkOutItem":"ပစ္စည်းအားရွေးယူမည်။"
+    }
   }
 }

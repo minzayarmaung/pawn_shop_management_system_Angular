@@ -311,6 +311,12 @@
   width: fit-content;
 }
 
+.customer-cell,
+.id-cell {
+  cursor: pointer;
+}
+
+
 .amount-cell {
   font-weight: 600;
   color: #059669;

@@ -127,5 +127,10 @@
     "graph":{
       "monthlyProfit":"Montly Profit"
     }
+  },
+  "buttons":{
+    "general":{
+      "checkOutItem":"Check Out Item"
+    }
   }
 }

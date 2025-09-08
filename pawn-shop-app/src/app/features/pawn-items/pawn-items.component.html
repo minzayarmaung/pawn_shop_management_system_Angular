@@ -82,7 +82,7 @@
       <table class="pawn-table">
         <thead>
           <tr>
-            <th>{{'pawn.table.headers.id' | translate}}</th>
+            <th >{{'pawn.table.headers.id' | translate}}</th>
             <th>{{'pawn.table.headers.customerName' | translate}}</th>
             <th>{{'pawn.table.headers.customerNrc' | translate}}</th>
             <th>{{'pawn.table.headers.itemType' | translate}}</th>
@@ -95,7 +95,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of filteredItems; let i = index" class="table-row">
+          <tr *ngFor="let item of filteredItems; let i = index" class="table-row" (click)="viewItem(item)">
             <td class="id-cell">#{{ item.id }}</td>
             <td class="customer-cell">
               <div class="customer-info">
@@ -373,7 +373,7 @@
       type="button" 
       class="btn-primary"
       (click)="checkOutItem(pawnForm.value)">
-      Check Out Item
+      {{ 'buttons.general.checkOutItem' | translate}}
     </button>
 
     <button 
