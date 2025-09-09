@@ -8,20 +8,18 @@ import { LoginComponent } from './shared/components/login/login.component';
 import { SignupComponent } from './shared/components/sign-up/sign-up.component';
 import { ForgotPasswordComponent } from './shared/components/forgot-password/forgot-password.component';
 import { authGuard, guestGuard } from './services/auth/auth.guard';
+import { ReportListComponent } from './features/report-list/report-list.component';
 
 export const routes: Routes = [
-  // Default redirect to dashboard
   {
     path: '',
     redirectTo: '/dashboard',
     pathMatch: 'full'
   },
-  
-  // Protected routes - require authentication
   {
     path: '',
     component: HomeComponent,
-    canActivate: [authGuard], // Protect the entire home layout
+    canActivate: [authGuard],
     children: [
       { 
         path: 'dashboard', 
@@ -31,6 +29,10 @@ export const routes: Routes = [
         path: 'pawn-items', 
         component: PawnItemsComponent 
       },
+      {
+        path: 'report-list',
+        component: ReportListComponent,
+      },
       { 
         path: 'configuration', 
         component: ConfigurationComponent 
@@ -38,28 +40,25 @@ export const routes: Routes = [
       { 
         path: 'profile', 
         component: ProfileComponent 
-      }
+      },
     ]
   },
   
-  // Public routes - redirect if already authenticated
   {
     path: 'login',
     component: LoginComponent,
-    canActivate: [guestGuard] // Redirect to dashboard if already logged in
+    canActivate: [guestGuard] 
   },
   {
     path: 'signup',
     component: SignupComponent,
-    canActivate: [guestGuard] // Redirect to dashboard if already logged in
+    canActivate: [guestGuard] 
   },
   {
     path: 'forgot-password',
     component: ForgotPasswordComponent,
-    canActivate: [guestGuard] // Redirect to dashboard if already logged in
+    canActivate: [guestGuard]
   },
-  
-  // Catch-all route - redirect to dashboard
   {
     path: '**',
     redirectTo: '/dashboard'
