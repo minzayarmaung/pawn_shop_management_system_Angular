@@ -1,1 +1,274 @@
-<p>report-list works!</p>
+<div class="report-container">
+  <!-- Header -->
+  <div class="report-header">
+    <h1 class="report-title"> {{ 'reports.title' | translate }}</h1>
+    <p class="report-subtitle">{{ 'reports.subtitle' | translate }}</p>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="search-section">
+    <!-- Basic Search -->
+    <div class="search-bar">
+      <div class="search-input-container">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()"
+          [placeholder]="'reports.search.placeholder' | translate"
+          class="search-input">
+        <button class="search-btn" (click)="onSearch()">
+          🔍
+        </button>
+      </div>
+      
+      <button 
+        class="advanced-search-toggle"
+        [class.active]="showAdvancedSearch"
+        (click)="toggleAdvancedSearch()">
+        ⚙️ {{ 'reports.search.advanced' | translate }}
+      </button>
+    </div>
+
+    <!-- Advanced Search Panel -->
+    <div class="advanced-search-panel" [class.show]="showAdvancedSearch">
+      <form [formGroup]="advancedSearchForm" (ngSubmit)="onAdvancedSearch()">
+        <div class="advanced-search-grid">
+          <div class="form-group">
+            <label>{{ 'reports.fields.customerName' | translate }}</label>
+            <input type="text" formControlName="customerName" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.customerNRC' | translate }}</label>
+            <input type="text" formControlName="customerNRC" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.itemType' | translate }}</label>
+            <select formControlName="itemType" class="form-control">
+              <option value="">{{ 'common.all' | translate }}</option>
+              <option *ngFor="let type of itemTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.minAmount' | translate }}</label>
+            <input type="number" formControlName="minAmount" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.maxAmount' | translate }}</label>
+            <input type="number" formControlName="maxAmount" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.pawnDateFrom' | translate }}</label>
+            <input type="date" formControlName="pawnDateFrom" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.pawnDateTo' | translate }}</label>
+            <input type="date" formControlName="pawnDateTo" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.dueDateFrom' | translate }}</label>
+            <input type="date" formControlName="dueDateFrom" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.dueDateTo' | translate }}</label>
+            <input type="date" formControlName="dueDateTo" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>{{ 'reports.fields.checkedOutBy' | translate }}</label>
+            <input type="text" formControlName="checkedOutBy" class="form-control">
+          </div>
+        </div>
+        
+        <div class="advanced-search-actions">
+          <button type="submit" class="btn btn-primary">
+            🔍 {{ 'common.search' | translate }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="clearAdvancedSearch()">
+            🗑️ {{ 'common.clear' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Export and Controls -->
+  <div class="controls-section">
+    <div class="results-info">
+      <span class="results-count">
+        {{ 'reports.showing' | translate }} {{ getPaginatedItems().length }} {{ 'reports.of' | translate }} {{ filteredItems.length }} {{ 'reports.results' | translate }}
+      </span>
+    </div>
+    
+    <div class="export-controls">
+      <div class="dropdown">
+        <button class="btn btn-export dropdown-toggle" type="button">
+          📊 {{ 'reports.export.title' | translate }}
+        </button>
+        <div class="dropdown-menu">
+          <button class="dropdown-item" (click)="exportToExcel()" [disabled]="loading">
+            📑 {{ 'reports.export.all' | translate }}
+          </button>
+          <button class="dropdown-item" (click)="exportFilteredData()" [disabled]="loading">
+            🔍 {{ 'reports.export.filtered' | translate }}
+          </button>
+          <button class="dropdown-item" (click)="exportCurrentPage()" [disabled]="loading">
+            📄 {{ 'reports.export.currentPage' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="table-container">
+    <div class="table-wrapper" [class.loading]="loading">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th (click)="sort('no')" class="sortable">
+              {{ 'reports.columns.no' | translate }}
+              <span class="sort-icon">{{ getSortIcon('no') }}</span>
+            </th>
+            <th (click)="sort('customerName')" class="sortable">
+              {{ 'reports.columns.customerName' | translate }}
+              <span class="sort-icon">{{ getSortIcon('customerName') }}</span>
+            </th>
+            <th (click)="sort('customerNRC')" class="sortable">
+              {{ 'reports.columns.customerNRC' | translate }}
+              <span class="sort-icon">{{ getSortIcon('customerNRC') }}</span>
+            </th>
+            <th (click)="sort('itemType')" class="sortable">
+              {{ 'reports.columns.itemType' | translate }}
+              <span class="sort-icon">{{ getSortIcon('itemType') }}</span>
+            </th>
+            <th (click)="sort('amount')" class="sortable text-right">
+              {{ 'reports.columns.amount' | translate }}
+              <span class="sort-icon">{{ getSortIcon('amount') }}</span>
+            </th>
+            <th (click)="sort('pawnDate')" class="sortable">
+              {{ 'reports.columns.pawnDate' | translate }}
+              <span class="sort-icon">{{ getSortIcon('pawnDate') }}</span>
+            </th>
+            <th (click)="sort('dueDate')" class="sortable">
+              {{ 'reports.columns.dueDate' | translate }}
+              <span class="sort-icon">{{ getSortIcon('dueDate') }}</span>
+            </th>
+            <th (click)="sort('checkedOutDate')" class="sortable">
+              {{ 'reports.columns.checkedOutDate' | translate }}
+              <span class="sort-icon">{{ getSortIcon('checkedOutDate') }}</span>
+            </th>
+            <th (click)="sort('checkedOutBy')" class="sortable">
+              {{ 'reports.columns.checkedOutBy' | translate }}
+              <span class="sort-icon">{{ getSortIcon('checkedOutBy') }}</span>
+            </th>
+            <th class="status-column">
+              {{ 'reports.columns.status' | translate }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of getPaginatedItems(); let i = index" 
+              class="table-row"
+              [class]="getStatusClass(item)">
+            <td class="row-number">{{ (pagination.currentPage - 1) * pagination.pageSize + i + 1 }}</td>
+            <td class="customer-name">{{ item.customerName }}</td>
+            <td class="customer-nrc">{{ item.customerNRC }}</td>
+            <td class="item-type">
+              <span class="item-type-badge">{{ item.itemType }}</span>
+            </td>
+            <td class="amount text-right">{{ formatCurrency(item.amount) }}</td>
+            <td class="date">{{ formatDate(item.pawnDate) }}</td>
+            <td class="date due-date">{{ formatDate(item.dueDate) }}</td>
+            <td class="date">{{ formatDate(item.checkedOutDate) }}</td>
+            <td class="checked-out-by">{{ item.checkedOutBy || '-' }}</td>
+            <td class="status">
+              <span class="status-badge" [class]="getStatusClass(item)">
+                {{ getStatusText(item) }}
+              </span>
+            </td>
+          </tr>
+          
+          <!-- Empty State -->
+          <tr *ngIf="!loading && getPaginatedItems().length === 0">
+            <td colspan="10" class="empty-state">
+              <div class="empty-content">
+                <div class="empty-icon">📭</div>
+                <h3>{{ 'reports.empty.title' | translate }}</h3>
+                <p>{{ 'reports.empty.message' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+          
+          <!-- Loading State -->
+          <tr *ngIf="loading">
+            <td colspan="10" class="loading-state">
+              <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <p>{{ 'common.loading' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section" *ngIf="!loading && filteredItems.length > 0">
+    <div class="pagination-info">
+      <div class="page-size-selector">
+        <label>{{ 'reports.pagination.showPerPage' | translate }}</label>
+        <select 
+          [ngModel]="pagination.pageSize" 
+          (ngModelChange)="changePageSize($event)"
+          class="page-size-select">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+        </select>
+      </div>
+      
+      <span class="pagination-text">
+        {{ 'reports.pagination.showing' | translate }} 
+        {{ (pagination.currentPage - 1) * pagination.pageSize + 1 }}-{{ 
+          Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems) 
+        }} 
+        {{ 'reports.pagination.of' | translate }} {{ pagination.totalItems }}
+      </span>
+    </div>
+    
+    <div class="pagination-controls">
+      <button 
+        class="pagination-btn"
+        [disabled]="pagination.currentPage === 1"
+        (click)="changePage(pagination.currentPage - 1)">
+        ⬅️ {{ 'common.previous' | translate }}
+      </button>
+      
+      <div class="page-numbers">
+        <button 
+          *ngFor="let page of getPageNumbers()" 
+          class="page-btn"
+          [class.active]="page === pagination.currentPage"
+          [class.dots]="page === -1"
+          [disabled]="page === -1"
+          (click)="page !== -1 && changePage(page)">
+          {{ page === -1 ? '...' : page }}
+        </button>
+      </div>
+      
+      <button 
+        class="pagination-btn"
+        [disabled]="pagination.currentPage === pagination.totalPages"
+        (click)="changePage(pagination.currentPage + 1)">
+        {{ 'common.next' | translate }} ➡️
+      </button>
+    </div>
+  </div>
+</div>
